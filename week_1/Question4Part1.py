@@ -15,7 +15,8 @@ import math
 def model(x,t):
      a = 1
      b = .5
-     dxdt = - a * x + b * math.pow(x,2)
+     #dxdt = - a * x + b * math.pow(x,2)
+     dxdt = a * x - b * math.pow(x,2)
      return dxdt
 
 #intial condition
@@ -30,5 +31,8 @@ x = odeint(model,x0,t)
 plt.plot(t,x)
 plt.xlabel('time')
 plt.ylabel('x(t)')
-plt.show()
+#plt.show()
 
+# save figure as pdf
+plt.tight_layout()
+plt.savefig('gLV_1dim.pdf')
