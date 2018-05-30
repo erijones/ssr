@@ -77,6 +77,30 @@ For next week:
 \begin{itemize}
 \tightlist
 \item
+  Explicitly compute the eigenvalues of the Jacobian for the 2D gLV
+  equations,
+
+  \begin{align} \begin{split}
+      \frac{\text{d}x_a}{\text{d}t} &= x_a (\mu_a - M_{aa} x_a - M_{ab} x_b) \\
+      \frac{\text{d}x_b}{\text{d}t} &= x_b (\mu_b - M_{ba} x_a - M_{bb} x_b),
+  \end{split} \end{align}
+
+  for the singly-existing steady states \((x^*, \ 0)\) and
+  \((0, \ y^*)\), where you should compute \(x^*\) and \(y^*\) by hand
+  (feel free to use symbolic computing software to check your answers).
+  Compute the stability of these states for the following two parameter
+  combinations: (\(\mu_a = \mu_b = 1\), \(M_{aa} = M_{bb} = 1\), and
+  \(M_{ab} = M_{ba} = .5\)), and (\(\mu_a = \mu_b = 1\),
+  \(M_{aa} = M_{bb} = 1\), and \(M_{ab} = M_{ba} = 1.5\)). Compare these
+  results with numerical simulations. In your simulations, use
+  \texttt{plt.subplot} in order to make a 2x2 grid of subfigures. Make
+  the top row correspond to simulations that start at an initial
+  condition of (.1, .9) and the bottom row correspond to an initial
+  condition of (.5, .5), and make the left and right columns correspond
+  to the simulations that use the first and second parameter sets. Make
+  the title of each subfigure indicate which IC and which parameter set
+  is used. Do the numerical results agree with your analytic results?
+\item
   Read chapter 2 of Wiggins
 \item
   Show that 2D gLV equations can be nondimensionalized so that

@@ -22,7 +22,6 @@ def microbes(n,t) :
     e = -1
 
     dxdt = x * a + b * math.pow(x,2) + c * y * x
-    print(a,b*x,c*y)
     dydt = y * d + e * math.pow(y,2) + c * y * x
 
     return [dxdt,dydt]
@@ -30,7 +29,6 @@ def microbes(n,t) :
 n0 = [.9,.1]
 t = np.linspace(0,15,100)
 n = odeint(microbes,n0,t)
-print(microbes(n0, 0))
 
 x = n[:,0]
 y = n[:,1]
