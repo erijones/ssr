@@ -1,4 +1,5 @@
 #!/bin/python
+# run with `./example_import_code.py` or with `python example_import_code.py`
 
 import barebones_CDI as bb
 
