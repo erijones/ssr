@@ -45,3 +45,8 @@ x = np.array([0, 0])
 output = jacobian(x, 0, mu, M)
 get_stability(x, mu, M)
 
+# to iterate through all possible subsets of N, use similar code to
+# https://stackoverflow.com/questions/1482308/whats-a-good-way-to-combinate-through-a-set
+
+
+
