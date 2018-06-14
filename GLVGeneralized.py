@@ -29,7 +29,7 @@ from sympy import *
 ##print(M)
 ##print(ic4)
 ##print(mu)
-#import itertools
+import itertools
 #from sympy.matrices import Matrix, Transpose
 #import numpy as np
 #from numpy import append
@@ -41,8 +41,12 @@ M = [[3, 4, 7, 8], [4,5,6,9], [3,6,7,10] ,[3,8,8, 10]]
 mu = [1,2,3,4]
 bbb = [1,2,3,4]
 
+M = np.random.rand(4,4)
+mu = np.arange(1, 5)
+N = len(mu)
+
 #This is going to generate a list of numbers that will signify the positions of rows in my vector/ matrix:
-lst = list(range(1,len(M)+1))
+lst = list(range(len(M)))
 
 #Intializations of lists that the program uses at somepoints...
 combs = []
@@ -62,8 +66,24 @@ listarray = []
 # Credit : #https://stackoverflow.com/questions/8371887/making-all-possible-combinations-of-a-list-in-python
 for i in range(1, len(lst)+1):
     els = [list(x) for x in itertools.combinations(lst,i)]
-    combs.append(els)
-    
+    combs.extend(els)
+
+# fps = fixed points
+fps = []
+for comb in combs:
+    temp_M = M[comb, :][:, comb]
+    temp_mu = mu[comb]
+    temp_fp = np.linalg.solve(temp_M, -temp_mu)
+    full_fp = np.zeros(N)
+    for i,elem in enumerate(comb):
+        full_fp[elem] = temp_fp[i]
+
+    print(full_fp)
+
+import sys
+sys.exit()
+
+
 #This is where the program gets messy...    
 #combs is a list of lists (i.e. a superlist.) No matter the size the size combs should ALWAYS have exactly 3 enteries.
 #each entry is a different class of solutions.
@@ -92,6 +112,7 @@ for k in range(len(perm_set_g1)):
     M = [[3, 4, 7, 8], [4,5,6,9], [3,6,7, 10] ,[3,8,8, 10]]
     mu = [1,2,3,4]
     perm_set_g1_ds = perm_set_g1[k]
+    print(perm_set_g1_ds)
     for l in range(len(perm_set_g1_ds)):
         perm_set_g1_ds_ds = perm_set_g1_ds[l]
         M = [[3, 4, 7, 8], [4,5,6,9], [3,6,7, 10] ,[3,8,8, 10]]
