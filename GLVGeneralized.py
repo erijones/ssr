@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Jun 10 19:13:32 2018
-
-@author: parkershankin-clarke
-"""
+from __future__ import division
 
 import barebones_CDI as bb
 import numpy as np
 from sympy.abc import x
 from sympy.matrices import Matrix, Transpose
 from numpy.linalg import inv
+from sympy import *
 #
 ## import data from stein_ic.csv and stein_parameters.csv files
 #var_data, ic_data = bb.import_data()
@@ -115,11 +112,11 @@ for n in range(0,len(M1_lst),len(M)):
     lem = [(M1_lst[n:n+len(M)])] + lem
 
 lemo = []
-for o in range(0,len(mu1_lst),len(mu)):
+for n in range(0,len(mu1_lst),len(mu)):
     lemo = [(mu1_lst[n:n+len(mu)])] + lemo
 
 lemon = []
-for p in range(0,len(mu2_lst),len(mu)):
+for n in range(0,len(mu2_lst),len(mu)):
     lemon = [(mu2_lst[n:n+len(mu)])] + lemon
     
     
@@ -130,19 +127,36 @@ ki = np.array(lem)
 kiw = np.array(lemo)
 kiwi = np.array(lemon)
 
+kiw_element_l = []
+for n in range(len(kiw)):
+    kiw_element = kiw[n]
+    kiw_element_l = [kiw_element] + kiw_element_l 
+
+b_l = []
+b = list(kiw_element_l[0])
+b_l = b_l + [b]
+b_l = np.array(b_l)
+
+a = ki[0]
+
+
+pp = np.concatenate((a, b_l.T), axis=1)
+
+pp_l = list(pp)
+
 
 #Eventually we will plug the above lists in to this part of the code and it will solve for fixed points
 # Find fixed points by solving x = A^(-1) b
 
 
-for q in range(len(k)):
-    A = k[q]
-    b = kiwi[q]
-    IA = inv(A)
+#for q in range(len(k)):
+#    A = k[q]
+#    b = kiwi[q]
+#    IA = inv(A)
 #    x = IA.dot(b)
-
-
-#A = M
+#
+#
+##A = M
 #b = mu
 #IA = inv(A)
 #tb=np.transpose(b)
