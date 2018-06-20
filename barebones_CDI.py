@@ -13,7 +13,7 @@
 
 import numpy as np
 import scipy.integrate as integrate
-np.set_printoptions(suppress=True, precision=5)
+np.set_printoptions(suppress=True, precision=8)
 
 # import data from Stein paper for parameters and initial conditions
 def import_data():

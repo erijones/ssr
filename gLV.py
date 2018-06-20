@@ -30,19 +30,28 @@ def jacobian(x, t, mu, M):
                 jac[i, j] = val
     return jac
 
-def get_stability(x, mu, M):
+def get_stability(x, mu, M, almost_stable=None, substability=False):
     """ Evaluate stability of steady state x. If stable, returns True; if
-    unstable, returns False """
+    unstable, returns False. If 'substability' is True, we only consider the
+    stability of the fixed point in the directions where x is non-zero. If
+    'almost_stable' is not None, check if there are almost_stable number of
+    positive eigenvalues or fewer."""
     jac = jacobian(x, 0, mu, M)
-    # # consider reduced jacobian that only considers nonnegative populations
-    # mask = [i for i in range(len(x)) if abs(x[i]) > 0]
-    # jac = jac[:, mask][mask, :]
+    # consider reduced jacobian that only considers nonnegative populations
+    if substability:
+        mask = [i for i in range(len(x)) if abs(x[i]) > 0]
+        jac = jac[:, mask][mask, :]
     eig_vals, eig_vecs = np.linalg.eig(jac)
 
-    if all(eig_vals < 0):
+    # check how many directions ss is unstable in
+    # if stable, num_unstable_dirs = 0
+    num_unstable_dirs = sum(eig_vals > 0)
+    if num_unstable_dirs == 0:
         return True
-    else :
-        return False
+    if almost_stable:
+        if num_unstable_dirs <= almost_stable:
+            return num_unstable_dirs
+    return False
 
 
 def get_stein_parameters():
@@ -91,12 +100,31 @@ def get_all_steady_states(mu, M):
     fixedpointslist = np.array(fixedpointslist)
     return fixedpointslist
 
+def get_nonegative_fixedpoints(fps):
+    """ Returns fixed points that are nonnegative """
+    fps_positive = []
+    fps_positive_list = []
+    for i in range(len(fps)):
+       fps_elem = fps[i]
+       fps_positive = all(j >= 0 for j in fps_elem)
+       if fps_positive == True:
+            fps_positive_list = [fps[i]] + fps_positive_list
+    return np.array(fps_positive_list)
+
+    #fps_positive_list = []
+    #for fp in fps:
+    #    if all(fp >= -1e-8):
+    #        fps_positive_list.append(fp)
+    #return np.array(fps_positive_list)
+
+
 
 ### MAIN FUNCTION
 
 param_list, ics = get_stein_parameters()
 labels, mu, M, eps = param_list
 fps = get_all_steady_states(mu, M)
+fps = get_nonegative_fixedpoints(fps)
 
 num_stable_fps = 0
 for fp in fps:
@@ -104,12 +132,20 @@ for fp in fps:
     output = integrand(fp, 0, mu, M)
     assert(all(abs(output) < 1e-6))
 
-    is_stable = get_stability(fp, mu, M)
+    is_stable = get_stability(fp, mu, M, almost_stable=1, substability=False)
     if is_stable:
-        print('{} is stable: {}'.format(fp, is_stable))
+        if is_stable is True:
+            print('{} is stable'.format(fp, is_stable))
+        else:
+            print('{} is unstable in {} direction'.format(fp, is_stable))
+        print()
         num_stable_fps += 1
 
-print('there were {} stable fps out of {} total'.format(num_stable_fps, len(fps)))
+print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
+
+
+
+
 
 
 
@@ -124,5 +160,3 @@ print('there were {} stable fps out of {} total'.format(num_stable_fps, len(fps)
 ##mu = np.arange(1, 5)
 #mu = np.array([.2,.1])
 ##x = np.array([1,2,3,4]) 
-
-
