@@ -102,7 +102,6 @@ def get_all_steady_states(mu, M):
 
 def get_nonegative_fixedpoints(fps):
     """ Returns fixed points that are nonnegative """
-    fps_positive = []
     fps_positive_list = []
     for i in range(len(fps)):
        fps_elem = fps[i]
@@ -132,7 +131,7 @@ for fp in fps:
     output = integrand(fp, 0, mu, M)
     assert(all(abs(output) < 1e-6))
 
-    is_stable = get_stability(fp, mu, M, almost_stable=1, substability=False)
+    is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
     if is_stable:
         if is_stable is True:
             print('{} is stable'.format(fp, is_stable))
