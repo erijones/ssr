@@ -99,7 +99,7 @@ def get_all_steady_states(mu, M):
     fixedpointslist = np.array(fixedpointslist)
     return fixedpointslist
 
-def get_nonegative_fixedpoints(fps):
+def get_nonnegative_fixedpoints(fps):
     """ Returns fixed points that are nonnegative """
     #fps_positive_list = []
     #for i in range(len(fps)):
