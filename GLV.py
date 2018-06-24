@@ -101,13 +101,6 @@ def get_all_steady_states(mu, M):
 
 def get_nonnegative_fixedpoints(fps):
     """ Returns fixed points that are nonnegative """
-    #fps_positive_list = []
-    #for i in range(len(fps)):
-    #   fps_elem = fps[i]
-    #   fps_positive = all(j >= 0 for j in fps_elem)
-    #   if fps_positive == True:
-    #        fps_positive_list = [fps[i]] + fps_positive_list
-    #return np.array(fps_positive_list)
 
     fps_positive_list = []
     for fp in fps:
@@ -117,29 +110,11 @@ def get_nonnegative_fixedpoints(fps):
 
 def get_param_line_equation(xa, xb):
     """ Print the equation for the line that goes through xa and xb """
-    #matrix = []
-    #xa = fp_list[0]
-    #xb = fp_list[1]
-
-    #A = fp_list[0]
-
-    #for i in range(len(xa)):
-    #    element = xb[i] - xa[i]
-    #    matrix.append(element)
-    #line = print('The parameterization of the line is {}t + {} '.format(xb - xa, xa))
-    #return line
-    print('The parameterization of the line is {}t + {} '.format(xb - xa, xa))
+    return print('The parameterization of the line is {}t + {} '.format(xb - xa, xa))
 
 def get_point_on_connector(xa, xb, p):
     """ Return a point along the line that connects xa and xb, parameterized by
     p, where 0 <= p <= 1. Note p=0 returns xa, while p=1 returns xb. """
-    #xa = fixed_point_list[0]
-    #xb = fixed_point_list[1]
-    #if p == 0:
-    #    return xa
-    #if p ==1:
-    #    return xb
-    #else :
     return (1-p)*xa + p*xb
 
 
@@ -179,3 +154,5 @@ print(intermediate_point)
 assert(all(get_point_on_connector(xa, xb, 0) == xa))
 assert(all(get_point_on_connector(xa, xb, 1) == xb))
 print(get_point_on_connector(np.array([0, 1]), np.array([1, 0]), .3))
+
+
