@@ -112,18 +112,45 @@ def get_param_line_equation(xa, xb):
     """ Print the equation for the line that goes through xa and xb """
     return print('The parameterization of the line is {}t + {} '.format(xb - xa, xa))
 
-def get_point_on_connector(xa, xb, p):
+def get_point_on_line(xa, xb, p):
     """ Return a point along the line that connects xa and xb, parameterized by
     p, where 0 <= p <= 1. Note p=0 returns xa, while p=1 returns xb. """
     return (1-p)*xa + p*xb
 
+xa = np.array([1,2,3])
+xb = np.array([4,5,6])
+p = .3
+
+point = get_point_on_line(xa, xb, p)
+print(point)
+
+def goes_to_xa(xa,xb,point) :
+    '''This function returns true if the distance from
+    point p to xa is less than a given value'''
+    da=0
+    for i in range(len(xa)):
+        da = math.pow(math.pow(xa[i]-point[i],2),.5) + da
+
+    if da < 1e-6:
+        return True 
+
+    
+def goes_to_xb(xa,xb,point) :
+    '''This function returns true if the distance from
+    point p to xb is less than a given value'''
+    db=0
+    for i in range(len(xa)):
+        db = math.pow(math.pow(xa[i]-point[i],2),.5) + db
+
+    if db < 1e-6:
+        return True 
 
 ### MAIN FUNCTION
 
 param_list, ics = get_stein_parameters()
 labels, mu, M, eps = param_list
 fps = get_all_steady_states(mu, M)
-fps = get_nonegative_fixedpoints(fps)
+fps = get_nonnegative_fixedpoints(fps)
 fp_list = []
 num_stable_fps = 0
 for fp in fps:
@@ -133,11 +160,13 @@ for fp in fps:
 
     is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
     if is_stable:
-        if is_stable is True:
-            print('{} is stable'.format(fp, is_stable))
-        else:
-            print('{} is unstable in {} direction'.format(fp, is_stable))
-        print()
+        verbose = False
+        if verbose:
+            if is_stable is True:
+                print('{} is stable'.format(fp, is_stable))
+            else:
+                print('{} is unstable in {} direction'.format(fp, is_stable))
+            print()
         num_stable_fps += 1
         fp_list.append(fp)
 
@@ -147,12 +176,6 @@ print('there were {} stable fps out of {} total positive cases'.format(num_stabl
 xa = fp_list[0]; xb = fp_list[1]
 p=.5
 
-get_param_line_equation(xa, xb)
-intermediate_point = get_point_on_connector(xa, xb, p)
-print(intermediate_point)
-
-assert(all(get_point_on_connector(xa, xb, 0) == xa))
-assert(all(get_point_on_connector(xa, xb, 1) == xb))
-print(get_point_on_connector(np.array([0, 1]), np.array([1, 0]), .3))
-
+#get_param_line_equation(xa, xb)
+intermediate_point = get_point_on_line(xa, xb, p)
 
