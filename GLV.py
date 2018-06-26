@@ -8,12 +8,15 @@ Created on Sun Jun 10 19:10:43 2018
 import numpy as np
 import itertools
 import barebones_CDI as bb
+from scipy.integrate import odeint
+
 
 def integrand(x, t, mu, M):
     """ Return N-dimensional gLV equations """
     dxdt = ( np.dot(np.diag(mu), x)
              + np.dot(np.diag(x), np.dot(M, x)) )
     return dxdt
+
 
 def jacobian(x, t, mu, M):
     """ Return jacobian of N-dimensional gLV equation at steady state x """
@@ -117,33 +120,37 @@ def get_point_on_line(xa, xb, p):
     p, where 0 <= p <= 1. Note p=0 returns xa, while p=1 returns xb. """
     return (1-p)*xa + p*xb
 
-xa = np.array([1,2,3])
-xb = np.array([4,5,6])
+
+t = np.linspace(0,100)
 p = .3
 
-point = get_point_on_line(xa, xb, p)
-print(point)
 
-def goes_to_xa(xa,xb,point) :
+
+
+def goes_to_xa(xa,xb,t, p) :
     '''This function returns true if the distance from
     point p to xa is less than a given value'''
-    da=0
-    for i in range(len(xa)):
-        da = math.pow(math.pow(xa[i]-point[i],2),.5) + da
+    point = get_point_on_line(xa, xb, p)
+    t = np.linspace(0,100)
+    sol = odeint(integrand, point, t, args=(mu, M))
+    index_sol = sol[-1]
+    if round(index_sol[0],3) == round(xa[0],3) :
+        return True
+    else :
+        return False
 
-    if da < 1e-6:
-        return True 
-
-    
-def goes_to_xb(xa,xb,point) :
+def goes_to_xb(xa,xb,t, p) :
     '''This function returns true if the distance from
-    point p to xb is less than a given value'''
-    db=0
-    for i in range(len(xa)):
-        db = math.pow(math.pow(xa[i]-point[i],2),.5) + db
+    point p to xa is less than a given value'''
+    point = get_point_on_line(xa, xb, p)
+    t = np.linspace(0,100)
+    sol = odeint(integrand, point, t, args=(mu, M))
+    index_sol = sol[-1]
+    if round(index_sol[0],3) == round(xb[0],3) :
+        return True
+    else :
+        return False
 
-    if db < 1e-6:
-        return True 
 
 ### MAIN FUNCTION
 
@@ -176,6 +183,9 @@ print('there were {} stable fps out of {} total positive cases'.format(num_stabl
 xa = fp_list[0]; xb = fp_list[1]
 p=.5
 
+result_xa =  goes_to_xa(xa,xb,t,p)
+result_xb = goes_to_xa(xa,xb,t,p)
+
+
 #get_param_line_equation(xa, xb)
 intermediate_point = get_point_on_line(xa, xb, p)
-
