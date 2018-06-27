@@ -126,31 +126,29 @@ p = .3
 
 
 
-
 def goes_to_xa(xa,xb,t, p) :
-    '''This function returns true if the distance from
-    point p to xa is less than a given value'''
+    ''' This function checks to see if a given point convereges to xa  '''
     point = get_point_on_line(xa, xb, p)
     t = np.linspace(0,100)
     sol = odeint(integrand, point, t, args=(mu, M))
-    index_sol = sol[-1]
-    if round(index_sol[0],3) == round(xa[0],3) :
-        return True
-    else :
-        return False
+    final_sol =  sol[-1]
+    for i in range(len(xa)) :
+        if all(np.subtract(xa,final_sol)) > .001:
+            return True
+        else :
+            return False
 
 def goes_to_xb(xa,xb,t, p) :
-    '''This function returns true if the distance from
-    point p to xa is less than a given value'''
+     ''' This function checks to see if a given point convereges to xb  '''
     point = get_point_on_line(xa, xb, p)
     t = np.linspace(0,100)
     sol = odeint(integrand, point, t, args=(mu, M))
-    index_sol = sol[-1]
-    if round(index_sol[0],3) == round(xb[0],3) :
-        return True
-    else :
-        return False
-
+    final_sol =  sol[-1]
+    for i in range(len(xa)) :
+        if all(np.subtract(xb,final_sol)) > .001:
+            return True
+        else :
+            return False
 
 ### MAIN FUNCTION
 
