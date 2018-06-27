@@ -127,30 +127,28 @@ p = .3
 
 
 def goes_to_xa(xa,xb,t, p) :
-    ''' This function checks to see if a given point convereges to xa  '''
+    """ This function checks to see if a given point convereges to xa  """
     point = get_point_on_line(xa, xb, p)
     t = np.linspace(0,100)
     sol = odeint(integrand, point, t, args=(mu, M))
     final_sol =  sol[-1]
-    for i in range(len(xa)) :
-        if all(np.subtract(xa,final_sol)) > .001:
-            return True
-        else :
-            return False
+    if np.linalg.norm(final_sol - xa) < .001 :
+        return True
+    else :
+        return False
 
 def goes_to_xb(xa,xb,t, p) :
-     ''' This function checks to see if a given point convereges to xb  '''
+    """ This function checks to see if a given point convereges to xb  """
     point = get_point_on_line(xa, xb, p)
     t = np.linspace(0,100)
     sol = odeint(integrand, point, t, args=(mu, M))
     final_sol =  sol[-1]
-    for i in range(len(xa)) :
-        if all(np.subtract(xb,final_sol)) > .001:
+    if  np.linalg.norm(final_sol - xa) < .001 :
             return True
-        else :
-            return False
+    else :
+           return False
 
-### MAIN FUNCTION
+## MAIN FUNCTION
 
 param_list, ics = get_stein_parameters()
 labels, mu, M, eps = param_list
