@@ -120,33 +120,29 @@ def get_point_on_line(xa, xb, p):
     p, where 0 <= p <= 1. Note p=0 returns xa, while p=1 returns xb. """
     return (1-p)*xa + p*xb
 
-
-t = np.linspace(0,100)
-p = .3
-
-
-
-def goes_to_xa(xa,xb,t, p) :
-    """ This function checks to see if a given point convereges to xa  """
+def goes_to_xa(xa, xb, p):
+    """ This function checks to see if the point parameterized by p converges
+    to xa """
     point = get_point_on_line(xa, xb, p)
-    t = np.linspace(0,100)
+    t = np.linspace(0, 1000)
     sol = odeint(integrand, point, t, args=(mu, M))
-    final_sol =  sol[-1]
-    if np.linalg.norm(final_sol - xa) < .001 :
+    final_sol = sol[-1]
+    if np.linalg.norm(final_sol - xa) < .001:
         return True
-    else :
+    else:
         return False
 
-def goes_to_xb(xa,xb,t, p) :
-    """ This function checks to see if a given point convereges to xb  """
+def goes_to_xb(xa, xb, p):
+    """ This function checks to see if the point parameterized by p converges
+    to xb """
     point = get_point_on_line(xa, xb, p)
-    t = np.linspace(0,100)
+    t = np.linspace(0, 1000)
     sol = odeint(integrand, point, t, args=(mu, M))
-    final_sol =  sol[-1]
-    if  np.linalg.norm(final_sol - xa) < .001 :
-            return True
-    else :
-           return False
+    final_sol = sol[-1]
+    if np.linalg.norm(final_sol - xb) < .001:
+        return True
+    else:
+        return False
 
 ## MAIN FUNCTION
 
@@ -163,7 +159,7 @@ for fp in fps:
 
     is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
     if is_stable:
-        verbose = False
+        verbose = True
         if verbose:
             if is_stable is True:
                 print('{} is stable'.format(fp, is_stable))
@@ -172,16 +168,18 @@ for fp in fps:
             print()
         num_stable_fps += 1
         fp_list.append(fp)
+fp_list = np.array(fp_list)
 
 print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
 
 
 xa = fp_list[0]; xb = fp_list[1]
-p=.5
 
-result_xa =  goes_to_xa(xa,xb,t,p)
-result_xb = goes_to_xa(xa,xb,t,p)
+for p in [.1, .5, .96, .97]:
+    result_xa = goes_to_xa(xa, xb, p)
+    result_xb = goes_to_xb(xa, xb, p)
+    print('for p={}:  went to xa is {}, went to xb is {}'.format(p, result_xa, result_xb))
 
 
 #get_param_line_equation(xa, xb)
-intermediate_point = get_point_on_line(xa, xb, p)
+#intermediate_point = get_point_on_line(xa, xb, p)
