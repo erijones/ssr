@@ -9,6 +9,7 @@ import numpy as np
 import itertools
 import barebones_CDI as bb
 from scipy.integrate import odeint
+from statistics import mean
 
 
 def integrand(x, t, mu, M):
@@ -144,6 +145,31 @@ def goes_to_xb(xa, xb, p):
     else:
         return False
 
+def get_seperatrix_point(xa,xb,p):
+    """ This function find the seperatrix for each of the fixed points and returns their average"""
+    flag_xa = True
+    flag_xb = True
+    for p in  np.linspace(0,1,1000) :
+        flag_xa = goes_to_xa(xa, xb, p)
+        if flag_xa is True :
+            print('for p={}:  went to xa is {}'.format(p, flag_xa))
+        else :
+            print(p)
+            separatrix_xa = p
+            break
+    for p in np.linspace(0,1,1000)[::-1]:
+        flag_xb = goes_to_xb(xa, xb, p)
+        if flag_xb is True:
+            print('for p={}:  went to xb is {}'.format(p, flag_xb))
+        else :
+            print(p)
+            separatrix_xb = p
+            break
+    
+    separatrix = ((separatrix_xa ) + (separatrix_xb)) / 2.0
+    return separatrix
+
+
 ## MAIN FUNCTION
 
 param_list, ics = get_stein_parameters()
@@ -173,13 +199,6 @@ fp_list = np.array(fp_list)
 print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
 
 
-xa = fp_list[0]; xb = fp_list[1]
-
-for p in [.1, .5, .96, .97]:
-    result_xa = goes_to_xa(xa, xb, p)
-    result_xb = goes_to_xb(xa, xb, p)
-    print('for p={}:  went to xa is {}, went to xb is {}'.format(p, result_xa, result_xb))
 
 
-#get_param_line_equation(xa, xb)
-#intermediate_point = get_point_on_line(xa, xb, p)
+
