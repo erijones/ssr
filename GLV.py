@@ -145,29 +145,44 @@ def goes_to_xb(xa, xb, p):
     else:
         return False
 
-def get_seperatrix_point(xa,xb,p):
-    """ This function find the seperatrix for each of the fixed points and returns their average"""
+def get_separatrix_point(xa, xb, num_points=101):
+    """ This function find the separatrix between the fixed points xa and xb.
+    If their basins of attraction agree, i.e. separatrix_xa and separatrix_xb
+    are very close, it returns a tuple of their average. If the basins of
+    attraction do not agree, i.e. separatrix_xa and separatrix_xb are
+    different, it returns a tuple (separatrix_xa, separatrix_xb) to
+    differentiate the basins of attraction. """
     flag_xa = True
     flag_xb = True
-    for p in  np.linspace(0,1,1000) :
+    verbose = False
+    for p in np.linspace(0, 1, num_points):
         flag_xa = goes_to_xa(xa, xb, p)
-        if flag_xa is True :
-            print('for p={}:  went to xa is {}'.format(p, flag_xa))
-        else :
-            print(p)
+        if flag_xa is True:
+            if verbose:
+                print('for p={}:  went to xa is {}'.format(p, flag_xa))
+        else:
             separatrix_xa = p
             break
-    for p in np.linspace(0,1,1000)[::-1]:
+    for p in np.linspace(0, 1, num_points)[::-1]:
         flag_xb = goes_to_xb(xa, xb, p)
         if flag_xb is True:
-            print('for p={}:  went to xb is {}'.format(p, flag_xb))
-        else :
-            print(p)
+            if verbose:
+                print('for p={}:  went to xb is {}'.format(p, flag_xb))
+        else:
             separatrix_xb = p
             break
-    
-    separatrix = ((separatrix_xa ) + (separatrix_xb)) / 2.0
-    return separatrix
+
+    verbose = True
+    if abs(separatrix_xa - separatrix_xb) <= 2/(num_points - 1):
+        separatrix = ((separatrix_xa ) + (separatrix_xb)) / 2.0
+        if verbose:
+            print('separatrix between xa and xb occurs at p={:.5}'.format(separatrix))
+        return separatrix, separatrix
+    else:
+        if verbose:
+            print('basin of attraction for xa ends at p={:.5}'.format(separatrix_xa))
+            print('basin of attraction for xb ends at p={:.5}'.format(separatrix_xb))
+        return separatrix_xa, separatrix_xb
 
 
 ## MAIN FUNCTION
@@ -185,7 +200,7 @@ for fp in fps:
 
     is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
     if is_stable:
-        verbose = True
+        verbose = False
         if verbose:
             if is_stable is True:
                 print('{} is stable'.format(fp, is_stable))
@@ -198,7 +213,8 @@ fp_list = np.array(fp_list)
 
 print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
 
-
-
+xa = fp_list[0]; xb = fp_list[1]
+sep_xa, sep_xb = get_separatrix_point(xa, xb, 101)
+print(sep_xa, sep_xb)
 
 
