@@ -9,7 +9,6 @@ import numpy as np
 import itertools
 import barebones_CDI as bb
 from scipy.integrate import odeint
-43
 
 
 def integrand(x, t, mu, M):
@@ -235,7 +234,7 @@ for fp in fps:
     
     stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
     if stein_stable:
-        verbose = True
+        verbose = False
         if verbose:
             if stein_stable is True:
                 print('{} is stable'.format(fp, stein_stable))
@@ -252,3 +251,25 @@ sep_xa, sep_xb = get_separatrix_point(xa, xb, 101)
 call = SSR(xa,xb,mu,M)
 print(sep_xa, sep_xb)
 
+print('HOW TO USE THE NEW HELPER FUNCTION')
+stein_ss_dict = bb.get_all_ss()
+print(stein_ss_dict)
+print()
+print(stein_ss_dict.keys())
+print(stein_ss_dict.values())
+print("select just one key, which is 'A'")
+print()
+one_key = list(stein_ss_dict.keys())[0]
+print(one_key)
+print("select just one value corresponding to the key 'A'")
+one_value = stein_ss_dict[one_key]
+print(one_value)
+print()
+print("TWO WAYS TO SELECT ALL OF THE VALUES OF THE DICTIONARY:")
+print(" 1. use the builtin 'values' command:")
+stein_ss = stein_ss_dict.values()
+print(' Using method 1, this returns things as a dict_values data type, which is kind of annoying unless we cast it as a list (stein_ss = list(stein_ss))')
+print(stein_ss)
+print("2. (preferred method) use a fancy list comprehension to select all values of the dictionary")
+stein_ss = np.array([stein_ss_dict[key] for key in stein_ss_dict])
+print(stein_ss)
