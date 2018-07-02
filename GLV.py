@@ -9,7 +9,7 @@ import numpy as np
 import itertools
 import barebones_CDI as bb
 from scipy.integrate import odeint
-from statistics import mean
+43
 
 
 def integrand(x, t, mu, M):
@@ -103,6 +103,9 @@ def get_all_steady_states(mu, M):
     fixedpointslist = np.array(fixedpointslist)
     return fixedpointslist
 
+#def get_stein_steady_states(mu, M):
+
+
 def get_nonnegative_fixedpoints(fps):
     """ Returns fixed points that are nonnegative """
 
@@ -183,7 +186,18 @@ def get_separatrix_point(xa, xb, num_points=101):
             print('basin of attraction for xa ends at p={:.5}'.format(separatrix_xa))
             print('basin of attraction for xb ends at p={:.5}'.format(separatrix_xb))
         return separatrix_xa, separatrix_xb
-
+    
+    
+def SSR(xa,xb,mu,M):  
+    """This function performs a steady state reduction by taking in the relevant parameters, then performing the relevant operations,
+     and finally returning the steady state reduced forms of the parameters "nu" and "L" """
+    
+    nu = np.array([[np.dot(xa, mu)],
+                  [np.dot(xb, mu)]])
+  
+    L = np.array([[xa.T * M * xa, xa.T * M * xb],
+                 [xb.T * M * xa, xb.T * M * xb]])
+    return nu,L
 
 ## MAIN FUNCTION
 
@@ -193,11 +207,12 @@ fps = get_all_steady_states(mu, M)
 fps = get_nonnegative_fixedpoints(fps)
 fp_list = []
 num_stable_fps = 0
+
 for fp in fps:
     # make sure all fixed points are actually fixed points
     output = integrand(fp, 0, mu, M)
     assert(all(abs(output) < 1e-6))
-
+    
     is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
     if is_stable:
         verbose = False
@@ -210,11 +225,30 @@ for fp in fps:
         num_stable_fps += 1
         fp_list.append(fp)
 fp_list = np.array(fp_list)
-
 print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
+
+fp_list2 = []
+for fp in fps:
+    # make sure all fixed points are actually fixed points
+    output = integrand(fp, 0, mu, M)
+    assert(all(abs(output) < 1e-6))
+    
+    stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
+    if stein_stable:
+        verbose = True
+        if verbose:
+            if stein_stable is True:
+                print('{} is stable'.format(fp, stein_stable))
+            else:
+                print('{} is unstable in {} direction'.format(fp, stein_stable))
+            print()
+        num_stable_fps += 1
+        fp_list2.append(fp)
+fp_list2 = np.array(fp_list2)
+print('there were {} stein stable fps out of {} total  cases'.format(num_stable_fps, len(fps)))
 
 xa = fp_list[0]; xb = fp_list[1]
 sep_xa, sep_xb = get_separatrix_point(xa, xb, 101)
+call = SSR(xa,xb,mu,M)
 print(sep_xa, sep_xb)
-
 
