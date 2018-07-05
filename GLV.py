@@ -11,6 +11,7 @@ import barebones_CDI as bb
 from scipy.integrate import odeint
 
 
+
 def integrand(x, t, mu, M):
     """ Return N-dimensional gLV equations """
     dxdt = ( np.dot(np.diag(mu), x)
@@ -197,10 +198,25 @@ def SSR(xa,xb,mu,M):
     L = np.array([[xa.T * M * xa, xa.T * M * xb],
                  [xb.T * M * xa, xb.T * M * xb]])
     return nu,L
+compare_lists = []
+
+def get_stein_steady_states(stein_values,steady_state_2_list):
+   """This function imports  values from the dictionary that contains "stein's steady states" 
+   and  also imports steady states with up to 2 unstable directions (almost_stable=2). This 
+   code outputs matching steady states between stein's set and the calculated set""" 
+   final_list = []
+   iterations_list =  list(itertools.product(stein_values,steady_state_2_list))
+   for i in range(len(iterations_list )):
+       compare_lists = iterations_list[i]
+       if np.linalg.norm(compare_lists[0] - compare_lists[1]) < .001:
+           final_list = final_list + [compare_lists[0]]
+   return final_list
+
+
 
 ## MAIN FUNCTION
 
-param_list, ics = get_stein_parameters()
+param_list, ics = get_stein_parameters() 
 labels, mu, M, eps = param_list
 fps = get_all_steady_states(mu, M)
 fps = get_nonnegative_fixedpoints(fps)
@@ -217,59 +233,53 @@ for fp in fps:
         verbose = False
         if verbose:
             if is_stable is True:
-                print('{} is stable'.format(fp, is_stable))
+                print('hello')
+#                print('{} is stable'.format(fp, is_stable))
             else:
-                print('{} is unstable in {} direction'.format(fp, is_stable))
-            print()
+                print('hello')
+#                print('{} is unstable in {} direction'.format(fp, is_stable))
+#            print()
         num_stable_fps += 1
         fp_list.append(fp)
 fp_list = np.array(fp_list)
-print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
+#print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
 
 fp_list2 = []
+steady_state_2_list = []
+counter = 0
 for fp in fps:
     # make sure all fixed points are actually fixed points
     output = integrand(fp, 0, mu, M)
     assert(all(abs(output) < 1e-6))
-    
     stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
     if stein_stable:
-        verbose = False
+        verbose = True
         if verbose:
             if stein_stable is True:
-                print('{} is stable'.format(fp, stein_stable))
+                print('{} is stable'.format(fp,stein_stable))
+                counter += 1
+                print(counter)
+                steady_state_2_list = [fp] + steady_state_2_list
             else:
-                print('{} is unstable in {} direction'.format(fp, stein_stable))
+                print('the stein {} is unstable in {} direction'.format(fp, stein_stable))
+                counter += 1
+                print(counter)
+                steady_state_2_list = [fp] + steady_state_2_list
             print()
         num_stable_fps += 1
         fp_list2.append(fp)
 fp_list2 = np.array(fp_list2)
 print('there were {} stein stable fps out of {} total  cases'.format(num_stable_fps, len(fps)))
 
+test_call = bb.get_all_ss()
+stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
+
+stein_values = list(test_call.values())
+
 xa = fp_list[0]; xb = fp_list[1]
 sep_xa, sep_xb = get_separatrix_point(xa, xb, 101)
 call = SSR(xa,xb,mu,M)
 print(sep_xa, sep_xb)
+#This returns Stein's steady states
+stein_steady_states = get_stein_steady_states(stein_values,steady_state_2_list)
 
-print('HOW TO USE THE NEW HELPER FUNCTION')
-stein_ss_dict = bb.get_all_ss()
-print(stein_ss_dict)
-print()
-print(stein_ss_dict.keys())
-print(stein_ss_dict.values())
-print("select just one key, which is 'A'")
-print()
-one_key = list(stein_ss_dict.keys())[0]
-print(one_key)
-print("select just one value corresponding to the key 'A'")
-one_value = stein_ss_dict[one_key]
-print(one_value)
-print()
-print("TWO WAYS TO SELECT ALL OF THE VALUES OF THE DICTIONARY:")
-print(" 1. use the builtin 'values' command:")
-stein_ss = stein_ss_dict.values()
-print(' Using method 1, this returns things as a dict_values data type, which is kind of annoying unless we cast it as a list (stein_ss = list(stein_ss))')
-print(stein_ss)
-print("2. (preferred method) use a fancy list comprehension to select all values of the dictionary")
-stein_ss = np.array([stein_ss_dict[key] for key in stein_ss_dict])
-print(stein_ss)
