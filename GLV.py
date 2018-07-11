@@ -9,6 +9,7 @@ import numpy as np
 import itertools
 import barebones_CDI as bb
 from scipy.integrate import odeint
+from itertools import permutations
 
 
 
@@ -175,7 +176,7 @@ def get_separatrix_point(xa, xb, num_points=101):
             separatrix_xb = p
             break
 
-    verbose = True
+    verbose = False
     if abs(separatrix_xa - separatrix_xb) <= 2/(num_points - 1):
         separatrix = ((separatrix_xa ) + (separatrix_xb)) / 2.0
         if verbose:
@@ -282,4 +283,18 @@ call = SSR(xa,xb,mu,M)
 print(sep_xa, sep_xb)
 #This returns Stein's steady states
 stein_steady_states = get_stein_steady_states(stein_values,steady_state_2_list)
+itertools.permutations(stein_steady_states,2)
+
+#returns all iterations of the possible combinations of Stein's Steady States
+elem_combos_stein_steady_state_list = []
+combos_stein_steady_state = list(itertools.combinations(stein_steady_states, 2))
+for i in range(len(combos_stein_steady_state)):
+    elem_combos_stein_steady_state = combos_stein_steady_state[i]
+    separatrix_from_combinations_of_stein_parameters = get_separatrix_point(elem_combos_stein_steady_state[0], elem_combos_stein_steady_state[1], num_points=101)
+    elem_combos_stein_steady_state_list = [separatrix_from_combinations_of_stein_parameters] + elem_combos_stein_steady_state_list
+    print('The combination of steady state {} and steady state {} produces the seperatrix values {} for {} and {} respectively.'.format(elem_combos_stein_steady_state[0],elem_combos_stein_steady_state[1],elem_combos_stein_steady_state_list,elem_combos_stein_steady_state[0],elem_combos_stein_steady_state[1]))
+    
+
+    
+
 
