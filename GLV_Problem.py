@@ -206,12 +206,12 @@ def get_separatrix_point(xa, xb,mu,M, num_points=101):
 def SSR(xa,xb,mu,M):  
     """This function performs a steady state reduction by taking in the relevant parameters, then performing the relevant operations,
      and finally returning the steady state reduced forms of the parameters "nu" and "L" """
-    
-    nu = np.array([[np.dot(xa, mu)],
-                  [np.dot(xb, mu)]])
+   
+    nu = np.array([np.dot(xa, mu),
+                  np.dot(xb, mu)])
   
-    L = np.array([[xa.T * M * xa, xa.T * M * xb],
-                 [xb.T * M * xa, xb.T * M * xb]])
+    L = np.array([[np.dot(xa.T, np.dot(M,xa)), np.dot(xa.T, np.dot(M,xb))],
+                 [np.dot(xb.T, np.dot(M, xa)), np.dot(xb.T, np.dot(M, xb))]])
     return nu,L
 compare_lists = []
 
@@ -307,6 +307,7 @@ for i in range(len(combos_stein_steady_state)):
     separatrix_from_combinations_of_stein_parameters = get_separatrix_point(elem_combos_stein_steady_state[0], elem_combos_stein_steady_state[1],mu,M, num_points=101)
     elem_combos_stein_steady_state_list = [separatrix_from_combinations_of_stein_parameters] + elem_combos_stein_steady_state_list
     Stein_nu, Stein_L = SSR(elem_combos_stein_steady_state[0],elem_combos_stein_steady_state[1],mu,M)
+    print(Stein_nu, Stein_L)
     Two_dimensional_separatrix = get_separatrix_point(np.array([1,0]), np.array([0,1]),Stein_nu,Stein_L, num_points=101)
     print('The combination of steady state {} and steady state {} produces the seperatrix values {} for {} and {} respectively.'.format(elem_combos_stein_steady_state[0],elem_combos_stein_steady_state[1],elem_combos_stein_steady_state_list,elem_combos_stein_steady_state[0],elem_combos_stein_steady_state[1]))
     

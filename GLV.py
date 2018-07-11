@@ -132,6 +132,11 @@ def goes_to_xa(xa, xb, p):
     t = np.linspace(0, 1000)
     sol = odeint(integrand, point, t, args=(mu, M))
     final_sol = sol[-1]
+    #print(p)
+    #print('final: {}'.format(final_sol))
+    #print('ssa  : {}'.format(xa))
+    #print('ssb  : {}'.format(xb))
+    #print()
     if np.linalg.norm(final_sol - xa) < .001:
         return True
     else:
@@ -254,23 +259,23 @@ for fp in fps:
     assert(all(abs(output) < 1e-6))
     stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
     if stein_stable:
-        verbose = True
-        if verbose:
-            if stein_stable is True:
+        verbose = False
+        if stein_stable is True:
+            steady_state_2_list = [fp] + steady_state_2_list
+            counter += 1
+            if verbose:
                 print('{} is stable'.format(fp,stein_stable))
-                counter += 1
                 print(counter)
-                steady_state_2_list = [fp] + steady_state_2_list
-            else:
+        else:
+            steady_state_2_list = [fp] + steady_state_2_list
+            counter += 1
+            if verbose:
                 print('the stein {} is unstable in {} direction'.format(fp, stein_stable))
-                counter += 1
                 print(counter)
-                steady_state_2_list = [fp] + steady_state_2_list
-            print()
         num_stable_fps += 1
         fp_list2.append(fp)
 fp_list2 = np.array(fp_list2)
-print('there were {} stein stable fps out of {} total  cases'.format(num_stable_fps, len(fps)))
+print('there were {} stein stable fps out of {} total cases'.format(num_stable_fps, len(fps)))
 
 test_call = bb.get_all_ss()
 stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
@@ -280,21 +285,18 @@ stein_values = list(test_call.values())
 xa = fp_list[0]; xb = fp_list[1]
 sep_xa, sep_xb = get_separatrix_point(xa, xb, 101)
 call = SSR(xa,xb,mu,M)
-print(sep_xa, sep_xb)
+#print(sep_xa, sep_xb)
 #This returns Stein's steady states
-stein_steady_states = get_stein_steady_states(stein_values,steady_state_2_list)
+stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
 itertools.permutations(stein_steady_states,2)
 
 #returns all iterations of the possible combinations of Stein's Steady States
-elem_combos_stein_steady_state_list = []
-combos_stein_steady_state = list(itertools.combinations(stein_steady_states, 2))
-for i in range(len(combos_stein_steady_state)):
-    elem_combos_stein_steady_state = combos_stein_steady_state[i]
-    separatrix_from_combinations_of_stein_parameters = get_separatrix_point(elem_combos_stein_steady_state[0], elem_combos_stein_steady_state[1], num_points=101)
-    elem_combos_stein_steady_state_list = [separatrix_from_combinations_of_stein_parameters] + elem_combos_stein_steady_state_list
-    print('The combination of steady state {} and steady state {} produces the seperatrix values {} for {} and {} respectively.'.format(elem_combos_stein_steady_state[0],elem_combos_stein_steady_state[1],elem_combos_stein_steady_state_list,elem_combos_stein_steady_state[0],elem_combos_stein_steady_state[1]))
-    
+combos = list(itertools.combinations(range(5), 2))
+for i,j in combos:
+    ssa = stein_steady_states[i]
+    ssb = stein_steady_states[j]
 
-    
+    temp_separatrix = get_separatrix_point(ssa, ssb, num_points=101)
+    print('separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix))
 
 
