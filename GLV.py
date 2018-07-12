@@ -120,15 +120,15 @@ def get_param_line_equation(xa, xb):
     """ Print the equation for the line that goes through xa and xb """
     return print('The parameterization of the line is {}t + {} '.format(xb - xa, xa))
 
-def get_point_on_line(xa, xb, p):
+def get_point_on_line(xa, xb, p,mu,M):
     """ Return a point along the line that connects xa and xb, parameterized by
     p, where 0 <= p <= 1. Note p=0 returns xa, while p=1 returns xb. """
     return (1-p)*xa + p*xb
 
-def goes_to_xa(xa, xb, p):
+def goes_to_xa(xa, xb, p,mu,M):
     """ This function checks to see if the point parameterized by p converges
     to xa """
-    point = get_point_on_line(xa, xb, p)
+    point = get_point_on_line(xa, xb, p,mu,M)
     t = np.linspace(0, 1000)
     sol = odeint(integrand, point, t, args=(mu, M))
     final_sol = sol[-1]
@@ -142,10 +142,10 @@ def goes_to_xa(xa, xb, p):
     else:
         return False
 
-def goes_to_xb(xa, xb, p):
+def goes_to_xb(xa, xb, p,mu,M):
     """ This function checks to see if the point parameterized by p converges
     to xb """
-    point = get_point_on_line(xa, xb, p)
+    point = get_point_on_line(xa, xb, p,mu,M)
     t = np.linspace(0, 1000)
     sol = odeint(integrand, point, t, args=(mu, M))
     final_sol = sol[-1]
@@ -154,7 +154,7 @@ def goes_to_xb(xa, xb, p):
     else:
         return False
 
-def get_separatrix_point(xa, xb, num_points=101):
+def get_separatrix_point(xa, xb, mu, M, num_points=101):
     """ This function find the separatrix between the fixed points xa and xb.
     If their basins of attraction agree, i.e. separatrix_xa and separatrix_xb
     are very close, it returns a tuple of their average. If the basins of
@@ -165,7 +165,7 @@ def get_separatrix_point(xa, xb, num_points=101):
     flag_xb = True
     verbose = False
     for p in np.linspace(0, 1, num_points):
-        flag_xa = goes_to_xa(xa, xb, p)
+        flag_xa = goes_to_xa(xa, xb, p,mu,M)
         if flag_xa is True:
             if verbose:
                 print('for p={}:  went to xa is {}'.format(p, flag_xa))
@@ -173,7 +173,7 @@ def get_separatrix_point(xa, xb, num_points=101):
             separatrix_xa = p
             break
     for p in np.linspace(0, 1, num_points)[::-1]:
-        flag_xb = goes_to_xb(xa, xb, p)
+        flag_xb = goes_to_xb(xa, xb, p,mu,M)
         if flag_xb is True:
             if verbose:
                 print('for p={}:  went to xb is {}'.format(p, flag_xb))
@@ -198,11 +198,12 @@ def SSR(xa,xb,mu,M):
     """This function performs a steady state reduction by taking in the relevant parameters, then performing the relevant operations,
      and finally returning the steady state reduced forms of the parameters "nu" and "L" """
     
-    nu = np.array([[np.dot(xa, mu)],
-                  [np.dot(xb, mu)]])
-  
-    L = np.array([[xa.T * M * xa, xa.T * M * xb],
-                 [xb.T * M * xa, xb.T * M * xb]])
+    nu = np.array([np.dot(xa, mu),
+                  np.dot(xb, mu)])
+#  np.dot(A, np.dot(B, C))
+# np.dot(xa.T, np.dot(M,xa))
+    L = np.array([[np.dot(xa.T,np.dot(M,xa)), np.dot(xa.T,np.dot(M,xb))],
+                 [np.dot(xb.T,np.dot(M,xa)), np.dot(xb.T,np.dot(M,xb))]])
     return nu,L
 compare_lists = []
 
@@ -229,27 +230,27 @@ fps = get_nonnegative_fixedpoints(fps)
 fp_list = []
 num_stable_fps = 0
 
-for fp in fps:
-    # make sure all fixed points are actually fixed points
-    output = integrand(fp, 0, mu, M)
-    assert(all(abs(output) < 1e-6))
-    
-    is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
-    if is_stable:
-        verbose = False
-        if verbose:
-            if is_stable is True:
-                print('hello')
-#                print('{} is stable'.format(fp, is_stable))
-            else:
-                print('hello')
-#                print('{} is unstable in {} direction'.format(fp, is_stable))
-#            print()
-        num_stable_fps += 1
-        fp_list.append(fp)
-fp_list = np.array(fp_list)
-#print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
-
+#for fp in fps:
+#    # make sure all fixed points are actually fixed points
+#    output = integrand(fp, 0, mu, M)
+#    assert(all(abs(output) < 1e-6))
+#    
+#    is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
+#    if is_stable:
+#        verbose = False
+#        if verbose:
+#            if is_stable is True:
+#                print('hello')
+##                print('{} is stable'.format(fp, is_stable))
+#            else:
+#                print('hello')
+##                print('{} is unstable in {} direction'.format(fp, is_stable))
+##            print()
+#        num_stable_fps += 1
+#        fp_list.append(fp)
+#fp_list = np.array(fp_list)
+##print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
+#
 fp_list2 = []
 steady_state_2_list = []
 counter = 0
@@ -282,9 +283,9 @@ stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
 
 stein_values = list(test_call.values())
 
-xa = fp_list[0]; xb = fp_list[1]
-sep_xa, sep_xb = get_separatrix_point(xa, xb, 101)
-call = SSR(xa,xb,mu,M)
+#xa = fp_list[0]; xb = fp_list[1]  
+#sep_xa, sep_xb = get_separatrix_point(xa, xb,M,mu, 101)
+#call = SSR(xa,xb,mu,M)
 #print(sep_xa, sep_xb)
 #This returns Stein's steady states
 stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
@@ -295,8 +296,52 @@ combos = list(itertools.combinations(range(5), 2))
 for i,j in combos:
     ssa = stein_steady_states[i]
     ssb = stein_steady_states[j]
+    temp_separatrix = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
+    nu,L = SSR(ssa,ssb,mu,M)
+    get = get_separatrix_point(np.array([0,1]), np.array([1,0]), nu, L, num_points=101)
+    print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix))
+    print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, get))
 
-    temp_separatrix = get_separatrix_point(ssa, ssb, num_points=101)
-    print('separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix))
 
-
+#test_call = bb.get_all_ss()
+#stein_values = list(test_call.values())
+#stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
+#
+#
+#ssa = stein_steady_states[1]
+#ssb = stein_steady_states[2]
+#temp_separatrix = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
+#nu,L = SSR(ssa,ssb,mu,M)
+#get = get_separatrix_point(np.array([0,1]), np.array([1,0]), nu, L, num_points=101)
+#print('separatrix of ss{} and ss{} occurs at {}'.format(1, 2, temp_separatrix))
+    
+#mu = np.array([0.36807, 0.31023, 0.3561 , 0.54006, 0.70898, 0.47064, 0.2297 ,
+#       0.83005, 0.32367, 0.29075, 0.39181])
+#    
+#M = np.array([[-0.20516,  0.0984 ,  0.16739, -0.16461, -0.14341,  0.01988,
+#        -0.51535, -0.39162, -0.26894,  0.00889,  0.34635],
+#       [ 0.06212, -0.10489, -0.04301, -0.15466, -0.1872 ,  0.02703,
+#        -0.45919, -0.41388, -0.19657,  0.02208,  0.3013 ],
+#       [ 0.14373, -0.19203, -0.10162, -0.13971, -0.16537,  0.01365,
+#        -0.50414, -0.7724 , -0.20645, -0.00596,  0.29257],
+#       [ 0.22403,  0.13813,  0.00046, -0.83125, -0.2238 ,  0.22027,
+#        -0.20529, -1.0097 , -0.40032, -0.03899,  0.66639],
+#       [-0.18016, -0.05126, -0.00005, -0.05421, -0.70858,  0.0162 ,
+#        -0.50756,  0.55363,  0.10635,  0.22438,  0.15757],
+#       [-0.11159, -0.03721, -0.04259,  0.04104,  0.26134, -0.42266,
+#        -0.18536, -0.43231, -0.26461, -0.06104,  0.1647 ],
+#       [-0.12669, -0.18576, -0.12222,  0.3809 ,  0.4003 , -0.16078,
+#        -1.2124 ,  1.3897 , -0.09635,  0.19189, -0.37922],
+#       [-0.07126,  0.0006 ,  0.08035, -0.4548 , -0.50349,  0.16899,
+#        -0.56222, -4.3508 , -0.2074 , -0.22341,  0.44315],
+#       [-0.3742 ,  0.27843,  0.24887, -0.16829,  0.08399,  0.03369,
+#        -0.23242, -0.39513, -0.3841 , -0.03876,  0.31454],
+#       [-0.04225, -0.01311,  0.02398, -0.11784, -0.32893,  0.02075,
+#         0.05477, -2.0963 ,  0.02382, -0.19213,  0.11124],
+#       [-0.03754, -0.03333, -0.04991, -0.09042, -0.10211,  0.03229,
+#        -0.18179, -0.30301, -0.00767,  0.01436, -0.05577]])
+#
+#nu,L = SSR(np.array([0.     , 0.     , 0.     , 0.98443, 1.88204, 1.4871 , 0.02138,
+#        0.0237 , 2.77094, 0.     , 2.26514]),np.array([0.     , 0.     , 0.     , 0.1667 , 0.88707, 0.98981, 0.36639,
+#        0.02345, 0.80461, 0.     , 0.     ]),mu,M)
+#get = get_separatrix_point(np.array([0,1]), np.array([1,0]), nu, L, num_points=101)
