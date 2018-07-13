@@ -9,7 +9,11 @@ import numpy as np
 import itertools
 import barebones_CDI as bb
 from scipy.integrate import odeint
+from scipy.integrate import ode
 from itertools import permutations
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 
@@ -125,34 +129,41 @@ def get_point_on_line(xa, xb, p,mu,M):
     p, where 0 <= p <= 1. Note p=0 returns xa, while p=1 returns xb. """
     return (1-p)*xa + p*xb
 
-def goes_to_xa(xa, xb, p,mu,M):
-    """ This function checks to see if the point parameterized by p converges
-    to xa """
-    point = get_point_on_line(xa, xb, p,mu,M)
-    t = np.linspace(0, 1000)
-    sol = odeint(integrand, point, t, args=(mu, M))
-    final_sol = sol[-1]
-    #print(p)
-    #print('final: {}'.format(final_sol))
-    #print('ssa  : {}'.format(xa))
-    #print('ssb  : {}'.format(xb))
-    #print()
-    if np.linalg.norm(final_sol - xa) < .001:
+def goes_to_xa(xa, xb, val):
+    """ This function checks to see if the point val converges to xa """
+    if np.linalg.norm(val - xa) < .001:
         return True
     else:
         return False
 
-def goes_to_xb(xa, xb, p,mu,M):
-    """ This function checks to see if the point parameterized by p converges
-    to xb """
-    point = get_point_on_line(xa, xb, p,mu,M)
-    t = np.linspace(0, 1000)
-    sol = odeint(integrand, point, t, args=(mu, M))
-    final_sol = sol[-1]
-    if np.linalg.norm(final_sol - xb) < .001:
+def goes_to_xb(xa, xb, val):
+    """ This function checks to see if the point val converges to xb """
+    if np.linalg.norm(val - xb) < .001:
         return True
     else:
         return False
+
+def get_steady_state(point, mu, M):
+    """ This function simulates the gLV equations with parameters mu and M and
+    initial condition point until the system reaches a steady state. Initially,
+    simulations go until time=1000, but if the system doesn't converge in this
+    time additional time is added to the simulation"""
+    verbose = False
+    t = np.linspace(0, 100000, 100001)
+    sol = odeint(integrand, point, t, args=(mu, M))
+    while np.linalg.norm(sol[-1] - sol[-100]) > 1e-8:
+        error = np.linalg.norm(sol[-1] - sol[-2])
+        if verbose:
+            print(t[-1], error)
+        t = np.linspace(t[-1], t[-1] + 100000, 100001)
+        sol = odeint(integrand, sol[-1], t, args=(mu, M), Dfun=jacobian)
+
+    if False:
+        t_max = t[-1]
+        print('  integrated until t={}'.format(t_max))
+
+    final_sol = sol[-1]
+    return final_sol
 
 def get_separatrix_point(xa, xb, mu, M, num_points=101):
     """ This function find the separatrix between the fixed points xa and xb.
@@ -161,23 +172,29 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
     attraction do not agree, i.e. separatrix_xa and separatrix_xb are
     different, it returns a tuple (separatrix_xa, separatrix_xb) to
     differentiate the basins of attraction. """
-    flag_xa = True
-    flag_xb = True
-    verbose = False
-    for p in np.linspace(0, 1, num_points):
-        flag_xa = goes_to_xa(xa, xb, p,mu,M)
-        if flag_xa is True:
-            if verbose:
-                print('for p={}:  went to xa is {}'.format(p, flag_xa))
+
+    ps = np.linspace(0, 1, num_points)
+    points = np.array([get_point_on_line(xa, xb, p, mu, M) for p in ps])
+    final_vals = np.array([get_steady_state(point, mu, M) for point in points])
+
+    went_to_xa = [goes_to_xa(xa, xb, val) for val in final_vals]
+    went_to_xb = [goes_to_xb(xa, xb, val) for val in final_vals]
+    # went_to_neither values are True if the corresponding point p went to
+    # neither xa nor xb
+    went_to_neither = [0 for i in range(num_points)]
+    for i in range(num_points):
+        if (not went_to_xa[i]) and (not went_to_xb[i]):
+            went_to_neither[i] = True
         else:
+            went_to_neither[i] = False
+
+    for p, went_to_xa in zip(ps, went_to_xa):
+        if not went_to_xa:
             separatrix_xa = p
             break
-    for p in np.linspace(0, 1, num_points)[::-1]:
-        flag_xb = goes_to_xb(xa, xb, p,mu,M)
-        if flag_xb is True:
-            if verbose:
-                print('for p={}:  went to xb is {}'.format(p, flag_xb))
-        else:
+
+    for p, went_to_xb in zip(ps[::-1], went_to_xb[::-1]):
+        if not went_to_xb:
             separatrix_xb = p
             break
 
@@ -188,24 +205,26 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
             print('separatrix between xa and xb occurs at p={:.5}'.format(separatrix))
         return separatrix, separatrix
     else:
+        if sum(went_to_neither) > 0:
+            neither_index = went_to_neither.index(True)
+            neither_val = get_steady_state(points[neither_index], mu, M)
+            print('    coexistent steady state occurs at {}'.format(neither_val))
         if verbose:
             print('basin of attraction for xa ends at p={:.5}'.format(separatrix_xa))
             print('basin of attraction for xb ends at p={:.5}'.format(separatrix_xb))
         return separatrix_xa, separatrix_xb
-    
-    
-def SSR(xa,xb,mu,M):  
+
+
+def SSR(xa,xb,mu,M):
     """This function performs a steady state reduction by taking in the relevant parameters, then performing the relevant operations,
      and finally returning the steady state reduced forms of the parameters "nu" and "L" """
-    
+
     nu = np.array([np.dot(xa, mu),
                   np.dot(xb, mu)])
-#  np.dot(A, np.dot(B, C))
-# np.dot(xa.T, np.dot(M,xa))
+
     L = np.array([[np.dot(xa.T,np.dot(M,xa)), np.dot(xa.T,np.dot(M,xb))],
                  [np.dot(xb.T,np.dot(M,xa)), np.dot(xb.T,np.dot(M,xb))]])
     return nu,L
-compare_lists = []
 
 def get_stein_steady_states(stein_values,steady_state_2_list):
    """This function imports  values from the dictionary that contains "stein's steady states" 
@@ -296,52 +315,10 @@ combos = list(itertools.combinations(range(5), 2))
 for i,j in combos:
     ssa = stein_steady_states[i]
     ssb = stein_steady_states[j]
-    temp_separatrix = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
+    temp_separatrix_11D = get_separatrix_point(ssa, ssb,mu,M, num_points=11)
     nu,L = SSR(ssa,ssb,mu,M)
-    get = get_separatrix_point(np.array([0,1]), np.array([1,0]), nu, L, num_points=101)
-    print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix))
-    print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, get))
+    temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=11)
+    print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
+    print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
 
 
-#test_call = bb.get_all_ss()
-#stein_values = list(test_call.values())
-#stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
-#
-#
-#ssa = stein_steady_states[1]
-#ssb = stein_steady_states[2]
-#temp_separatrix = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
-#nu,L = SSR(ssa,ssb,mu,M)
-#get = get_separatrix_point(np.array([0,1]), np.array([1,0]), nu, L, num_points=101)
-#print('separatrix of ss{} and ss{} occurs at {}'.format(1, 2, temp_separatrix))
-    
-#mu = np.array([0.36807, 0.31023, 0.3561 , 0.54006, 0.70898, 0.47064, 0.2297 ,
-#       0.83005, 0.32367, 0.29075, 0.39181])
-#    
-#M = np.array([[-0.20516,  0.0984 ,  0.16739, -0.16461, -0.14341,  0.01988,
-#        -0.51535, -0.39162, -0.26894,  0.00889,  0.34635],
-#       [ 0.06212, -0.10489, -0.04301, -0.15466, -0.1872 ,  0.02703,
-#        -0.45919, -0.41388, -0.19657,  0.02208,  0.3013 ],
-#       [ 0.14373, -0.19203, -0.10162, -0.13971, -0.16537,  0.01365,
-#        -0.50414, -0.7724 , -0.20645, -0.00596,  0.29257],
-#       [ 0.22403,  0.13813,  0.00046, -0.83125, -0.2238 ,  0.22027,
-#        -0.20529, -1.0097 , -0.40032, -0.03899,  0.66639],
-#       [-0.18016, -0.05126, -0.00005, -0.05421, -0.70858,  0.0162 ,
-#        -0.50756,  0.55363,  0.10635,  0.22438,  0.15757],
-#       [-0.11159, -0.03721, -0.04259,  0.04104,  0.26134, -0.42266,
-#        -0.18536, -0.43231, -0.26461, -0.06104,  0.1647 ],
-#       [-0.12669, -0.18576, -0.12222,  0.3809 ,  0.4003 , -0.16078,
-#        -1.2124 ,  1.3897 , -0.09635,  0.19189, -0.37922],
-#       [-0.07126,  0.0006 ,  0.08035, -0.4548 , -0.50349,  0.16899,
-#        -0.56222, -4.3508 , -0.2074 , -0.22341,  0.44315],
-#       [-0.3742 ,  0.27843,  0.24887, -0.16829,  0.08399,  0.03369,
-#        -0.23242, -0.39513, -0.3841 , -0.03876,  0.31454],
-#       [-0.04225, -0.01311,  0.02398, -0.11784, -0.32893,  0.02075,
-#         0.05477, -2.0963 ,  0.02382, -0.19213,  0.11124],
-#       [-0.03754, -0.03333, -0.04991, -0.09042, -0.10211,  0.03229,
-#        -0.18179, -0.30301, -0.00767,  0.01436, -0.05577]])
-#
-#nu,L = SSR(np.array([0.     , 0.     , 0.     , 0.98443, 1.88204, 1.4871 , 0.02138,
-#        0.0237 , 2.77094, 0.     , 2.26514]),np.array([0.     , 0.     , 0.     , 0.1667 , 0.88707, 0.98981, 0.36639,
-#        0.02345, 0.80461, 0.     , 0.     ]),mu,M)
-#get = get_separatrix_point(np.array([0,1]), np.array([1,0]), nu, L, num_points=101)
