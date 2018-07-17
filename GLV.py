@@ -124,7 +124,7 @@ def get_param_line_equation(xa, xb):
     """ Print the equation for the line that goes through xa and xb """
     return print('The parameterization of the line is {}t + {} '.format(xb - xa, xa))
 
-def get_point_on_line(xa, xb, p,mu,M):
+def get_point_on_line(xa, xb, p):
     """ Return a point along the line that connects xa and xb, parameterized by
     p, where 0 <= p <= 1. Note p=0 returns xa, while p=1 returns xb. """
     return (1-p)*xa + p*xb
@@ -174,7 +174,7 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
     differentiate the basins of attraction. """
 
     ps = np.linspace(0, 1, num_points)
-    points = np.array([get_point_on_line(xa, xb, p, mu, M) for p in ps])
+    points = np.array([get_point_on_line(xa, xb, p) for p in ps])
     final_vals = np.array([get_steady_state(point, mu, M) for point in points])
 
     went_to_xa = [goes_to_xa(xa, xb, val) for val in final_vals]
@@ -238,16 +238,21 @@ def get_stein_steady_states(stein_values,steady_state_2_list):
            final_list = final_list + [compare_lists[0]]
    return final_list
 
-def bisection(p1,p2,ϵ):
-    while np.linalg.norm(p2 - p1) > ϵ : 
+def bisection(xa,xb,eps):
+    p1 = 0
+    p2 = 1
+    
+    while np.linalg.norm(p2 - p1) > eps: 
         po = (p2 + p1)/2.0
-        val = abs(get_steady_state(po,mu,M))
-        if goes_to_xa(p1,p2,val) and not goes_to_xb(p1,p2,val) :
+        point = get_point_on_line(xa, xb, po)
+        val = get_steady_state(point,mu,M) 
+        if goes_to_xa(xa,xb,val) and not goes_to_xb(xa,xb,val):
             p1 = po
-        elif not goes_to_xa(p1,p2,val) and goes_to_xb(p1,p2,val) :
+        elif not goes_to_xa(xa,xb,val) and goes_to_xb(xa,xb,val):
             p2 = po
-        else :
-           break
+        else:
+            po = get_separatrix_point(xa,xb,mu,M, 101)
+            break
 
     return po
 
@@ -326,30 +331,31 @@ itertools.permutations(stein_steady_states,2)
 #returns all iterations of the possible combinations of Stein's Steady States
 combos = list(itertools.combinations(range(5), 2))
 for i,j in combos:
-    ssa = stein_steady_states[i]
-    ssb = stein_steady_states[j]
-    temp_separatrix_11D = get_separatrix_point(ssa, ssb,mu,M, num_points=11)
-    nu,L = SSR(ssa,ssb,mu,M)
-    temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=11)
-    print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
-    print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
-    bisected_separatrix_11D = bisection(stein_steady_states[i],stein_steady_states[j],.0001)
-    print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
+    if i == 1 and j == 2:
+        ssa = stein_steady_states[i]
+        ssb = stein_steady_states[j]
+        temp_separatrix_11D = get_separatrix_point(ssa, ssb,mu,M, num_points=111)
+        nu,L = SSR(ssa,ssb,mu,M)
+        temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=111)
+        print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
+        print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
+        bisected_separatrix_11D = bisection(stein_steady_states[i],stein_steady_states[j],.0001)
+        print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
     
 
 
-for i,j in combos:
-    xa = stein_steady_states[i]
-    xb = stein_steady_states[j]
-#    bisected_separatrix_11D = bisection(xa,xb,.001)
-    po = (xa+xb)/2.0
-    val = abs(get_steady_state(po,mu,M))
-    a =  not goes_to_xa(xa,xb,val) and goes_to_xb(xa,xb,val)
-    b = goes_to_xa(xa,xb,val) and not goes_to_xb(xa,xb,val)
-    print(xa)
-    print(xb)
-    print(a)
-    print(b)
+#for i,j in combos:
+#    xa = stein_steady_states[i]
+#    xb = stein_steady_states[j]
+##    bisected_separatrix_11D = bisection(xa,xb,.001)
+#    po = (xa+xb)/2.0
+#    val = abs(get_steady_state(po,mu,M))
+#    a =  not goes_to_xa(xa,xb,val) and goes_to_xb(xa,xb,val)
+#    b = goes_to_xa(xa,xb,val) and not goes_to_xb(xa,xb,val)
+#    print(xa)
+#    print(xb)
+#    print(a)
+#    print(b)
 
 
 
