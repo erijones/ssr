@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -14,7 +15,6 @@ from itertools import permutations
 
 import warnings
 warnings.filterwarnings("ignore")
-
 
 
 def integrand(x, t, mu, M):
@@ -238,6 +238,19 @@ def get_stein_steady_states(stein_values,steady_state_2_list):
            final_list = final_list + [compare_lists[0]]
    return final_list
 
+def bisection(p1,p2,ϵ):
+    while np.linalg.norm(p2 - p1) > ϵ : 
+        po = (p2 + p1)/2.0
+        val = abs(get_steady_state(po,mu,M))
+        if goes_to_xa(p1,p2,val) and not goes_to_xb(p1,p2,val) :
+            p1 = po
+        elif not goes_to_xa(p1,p2,val) and goes_to_xb(p1,p2,val) :
+            p2 = po
+        else :
+           break
+
+    return po
+
 
 
 ## MAIN FUNCTION
@@ -249,27 +262,27 @@ fps = get_nonnegative_fixedpoints(fps)
 fp_list = []
 num_stable_fps = 0
 
-#for fp in fps:
-#    # make sure all fixed points are actually fixed points
-#    output = integrand(fp, 0, mu, M)
-#    assert(all(abs(output) < 1e-6))
-#    
-#    is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
-#    if is_stable:
-#        verbose = False
-#        if verbose:
-#            if is_stable is True:
-#                print('hello')
-##                print('{} is stable'.format(fp, is_stable))
-#            else:
-#                print('hello')
-##                print('{} is unstable in {} direction'.format(fp, is_stable))
-##            print()
-#        num_stable_fps += 1
-#        fp_list.append(fp)
-#fp_list = np.array(fp_list)
-##print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
-#
+for fp in fps:
+    # make sure all fixed points are actually fixed points
+    output = integrand(fp, 0, mu, M)
+    assert(all(abs(output) < 1e-6))
+    
+    is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
+    if is_stable:
+        verbose = False
+        if verbose:
+            if is_stable is True:
+                print('hello')
+#                print('{} is stable'.format(fp, is_stable))
+            else:
+                print('hello')
+#                print('{} is unstable in {} direction'.format(fp, is_stable))
+#            print()
+        num_stable_fps += 1
+        fp_list.append(fp)
+fp_list = np.array(fp_list)
+#print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
+
 fp_list2 = []
 steady_state_2_list = []
 counter = 0
@@ -302,10 +315,10 @@ stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
 
 stein_values = list(test_call.values())
 
-#xa = fp_list[0]; xb = fp_list[1]  
-#sep_xa, sep_xb = get_separatrix_point(xa, xb,M,mu, 101)
-#call = SSR(xa,xb,mu,M)
-#print(sep_xa, sep_xb)
+xa = fp_list[0]; xb = fp_list[1]  
+sep_xa, sep_xb = get_separatrix_point(xa, xb,mu,M, 101)
+call = SSR(xa,xb,mu,M)
+print(sep_xa, sep_xb)
 #This returns Stein's steady states
 stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
 itertools.permutations(stein_steady_states,2)
@@ -320,5 +333,25 @@ for i,j in combos:
     temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=11)
     print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
     print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
+    bisected_separatrix_11D = bisection(stein_steady_states[i],stein_steady_states[j],.0001)
+    print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
+    
+
+
+for i,j in combos:
+    xa = stein_steady_states[i]
+    xb = stein_steady_states[j]
+#    bisected_separatrix_11D = bisection(xa,xb,.001)
+    po = (xa+xb)/2.0
+    val = abs(get_steady_state(po,mu,M))
+    a =  not goes_to_xa(xa,xb,val) and goes_to_xb(xa,xb,val)
+    b = goes_to_xa(xa,xb,val) and not goes_to_xb(xa,xb,val)
+    print(xa)
+    print(xb)
+    print(a)
+    print(b)
+
+
+
 
 
