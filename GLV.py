@@ -178,11 +178,11 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
 
     went_to_xa = [goes_to_xa(xa, xb, val) for val in final_vals]
     went_to_xb = [goes_to_xb(xa, xb, val) for val in final_vals]
-    # went_to_neither values are True if the corresponding point p went to
-    # neither xa nor xb
+#     went_to_neither values are True if the corresponding point p went to neither xa nor xb
     went_to_neither = [0 for i in range(num_points)]
     for i in range(num_points):
         if (not went_to_xa[i]) and (not went_to_xb[i]):
+            break
             went_to_neither[i] = True
         else:
             went_to_neither[i] = False
@@ -197,7 +197,7 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
             separatrix_xb = p
             break
 
-    verbose = False
+    verbose = True
     if abs(separatrix_xa - separatrix_xb) <= 2/(num_points - 1):
         separatrix = ((separatrix_xa ) + (separatrix_xb)) / 2.0
         if verbose:
@@ -254,6 +254,7 @@ def bisection(xa,xb,eps, mu, M):
         else:
             po = get_separatrix_point(xa,xb,mu,M, 101)
             break
+            
     return po
 
 def project_to_2D(traj, ssa, ssb):
@@ -278,6 +279,24 @@ def inflate_to_ND(traj, ssa, ssb):
         new_traj.append(elem[0]*ssa + elem[1]*ssb)
     new_traj = np.array(new_traj)
     return new_traj
+
+def get_relative_deviation(xa,xb,p):  
+    """ This function generates a trajectory in 11D with an initial condition.  
+    The 11D trajectory is projected onto a 2D plane and subsequently inflated back to 11D. 
+    Subsequently the trajectory length is found by summing  infinitesimally small
+    arc-lengths of the 11D inflation. The function returns the relative deviation 
+    by finding the difference between the original 11D trajectory and inflated 11D 
+    trajectory and dividing by the length of the 11D inflated trajectory """
+    ic = get_point_on_line(xa, xb, p)
+    t = np.linspace(0, 25, 26)
+    traj_ND = odeint(integrand, ic, t, args=(mu, M))
+    traj_2D = project_to_2D(traj_ND, xa, xb)
+    traj_on_plane = inflate_to_ND(traj_2D, xa, xb)
+    dxds = [np.linalg.norm(traj_ND[i+1] - traj_ND[i]) for i in range(len(traj_ND)-1)]
+    traj_length = sum(dxds)
+    deviation_from_plane = np.linalg.norm(traj_ND - traj_on_plane)
+    relative_deviation = deviation_from_plane/traj_length
+    return relative_deviation
 
 
 
@@ -344,8 +363,8 @@ stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
 stein_values = list(test_call.values())
 
 xa = fp_list[0]; xb = fp_list[1]
-#sep_xa, sep_xb = get_separatrix_point(xa, xb,mu,M, 101)
-#call = SSR(xa,xb,mu,M)
+sep_xa, sep_xb = get_separatrix_point(xa, xb,mu,M, 101)
+call = SSR(xa,xb,mu,M)
 
 #This returns Stein's steady states
 stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
@@ -354,7 +373,6 @@ stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
 if False:
     combos = list(itertools.combinations(range(5), 2))
     for i,j in combos:
-        if i == 1 and j == 2:
             ssa = stein_steady_states[i]
             ssb = stein_steady_states[j]
             temp_separatrix_11D = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
@@ -364,44 +382,56 @@ if False:
             print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
             bisected_separatrix_11D = bisection(ssa, ssb, .0001, mu, M)
             print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
+  
 
-# for some random initial condition
-example_ic = get_point_on_line(xa, xb, .3)
-# run a simulation to obtain high-dimensional (in this case 11D) trajectory
-t = np.linspace(0, 25, 26)
-traj_ND = odeint(integrand, example_ic, t, args=(mu, M))
-# use 'project_to_2D' to turn it into 2D trajectory
-traj_2D = project_to_2D(traj_ND, xa, xb)
-# use 'inflate_to_ND' to turn it into 11D trajectory that is on the embedded 2D
-# plane
-traj_on_plane = inflate_to_ND(traj_2D, xa, xb)
-# calculate the norm of the derivative of the trajectory at each time--- this
-# is effectively computing ds/dt, which I will then integrate (in this case
-# sum) to find s, the total arclength (called 'traj_length' here)
-dxds = [np.linalg.norm(traj_ND[i+1] - traj_ND[i]) for i in range(len(traj_ND)-1)]
-traj_length = sum(dxds)
-# compute the difference from original 11D trajectory and the trajectory
-# confined to the plane
-deviation_from_plane = np.linalg.norm(traj_ND - traj_on_plane)
-# return deviation as a proportion of total trajectory length
-# if the relative deviation is small, then SSR is working well
-relative_deviation = deviation_from_plane/traj_length
-print('relative deviation is {}'.format(relative_deviation))
+     
 
+#If this block is designated as True then all of the pairs of Stein's steady states are found. Using the bisection method the separatrices are found
+# if the steady states that correspond to the sepatratrices have meaningful trajectories then the are subsequently passed as arguments in the function
+# get_relative_deviation.
+if True:
+    combos = list(itertools.combinations(range(5), 2))
+    for i,j in combos:
+            ssa = stein_steady_states[i]
+            ssb = stein_steady_states[j]
+            pstar = bisection(ssa,ssb,.0001,mu,M)
+            if isinstance(pstar, float):
+                print(pstar)
+                p1 = 1.1 * pstar
+                p2 = 0.9 * pstar
+                relative_dev =  get_relative_deviation(ssa,ssb,p1)
+                relative_dev =  get_relative_deviation(ssa,ssb,p2)
+                print('The relative devaition is {} for stein_state{} and stein_state{}'.format(relative_dev,i,j))
+            else:
+               print(pstar)
+        
+## for some random initial condition
+#pstar = bisection(xa,xb,.0001,mu,M)
+#p = pstar * 1.1
+#example_ic = get_point_on_line(xa, xb, p)
+## run a simulation to obtain high-dimensional (in this case 11D) trajectory
+#t = np.linspace(0, 25, 26)
+#traj_ND = odeint(integrand, example_ic, t, args=(mu, M))
+## use 'project_to_2D' to turn it into 2D trajectory
+#traj_2D = project_to_2D(traj_ND, xa, xb)
+## use 'inflate_to_ND' to turn it into 11D trajectory that is on the embedded 2D
+## plane
+#traj_on_plane = inflate_to_ND(traj_2D, xa, xb)
+## calculate the norm of the derivative of the trajectory at each time--- this
+## is effectively computing ds/dt, which I will then integrate (in this case
+## sum) to find s, the total arclength (called 'traj_length' here)
+#dxds = [np.linalg.norm(traj_ND[i+1] - traj_ND[i]) for i in range(len(traj_ND)-1)]
+#traj_length = sum(dxds)
+## compute the difference from original 11D trajectory and the trajectory
+## confined to the plane
+#deviation_from_plane = np.linalg.norm(traj_ND - traj_on_plane)
+## return deviation as a proportion of total trajectory length
+## if the relative deviation is small, then SSR is working well
+#relative_deviation = deviation_from_plane/traj_length
+#print('relative deviation is {}'.format(relative_deviation))
+#relative_dev =  get_relative_deviation(xa,xb,p)
+#
 
-
-#for i,j in combos:
-#    xa = stein_steady_states[i]
-#    xb = stein_steady_states[j]
-##    bisected_separatrix_11D = bisection(xa,xb,.001)
-#    po = (xa+xb)/2.0
-#    val = abs(get_steady_state(po,mu,M))
-#    a =  not goes_to_xa(xa,xb,val) and goes_to_xb(xa,xb,val)
-#    b = goes_to_xa(xa,xb,val) and not goes_to_xb(xa,xb,val)
-#    print(xa)
-#    print(xb)
-#    print(a)
-#    print(b)
 
 
 
