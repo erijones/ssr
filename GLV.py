@@ -288,14 +288,17 @@ def get_relative_deviation(xa,xb,p):
     by finding the difference between the original 11D trajectory and inflated 11D 
     trajectory and dividing by the length of the 11D inflated trajectory """
     ic = get_point_on_line(xa, xb, p)
-    t = np.linspace(0, 25, 26)
+    t = np.linspace(0, 25, 151)
     traj_ND = odeint(integrand, ic, t, args=(mu, M))
     traj_2D = project_to_2D(traj_ND, xa, xb)
     traj_on_plane = inflate_to_ND(traj_2D, xa, xb)
+
+    ds = np.array([np.linalg.norm(traj_ND[i+1] - traj_ND[i])
+                   for i in range(len(traj_ND) - 1)])
     traj_diff = traj_ND - traj_on_plane
-    dxds_diff = [np.linalg.norm(traj_diff[i+1] - traj_diff[i]) for i in range(len(traj_diff)-1)]
+    integrate_diff = [np.linalg.norm(traj_diff[i])*ds[i] for i in range(len(traj_diff)-1)]
     dxds_total = [np.linalg.norm(traj_ND[i+1] - traj_ND[i]) for i in range(len(traj_ND)-1)]
-    deviation_from_plane = sum(dxds_diff)
+    deviation_from_plane = sum(integrate_diff)
     traj_length = sum(dxds_total)
     relative_deviation = deviation_from_plane/traj_length
     return relative_deviation
@@ -331,7 +334,7 @@ def example_food_web():
         for j in range(len(labels)):
             if i < j:
                 arrow_color = wheels[i][0].get_color()
-                curve_type = 'arc3,rad=0.0'
+                curve_type = 'arc3,rad=0'
                 thickness = 2
                 # make arrows pointing from one circle to another
                 ax.annotate("", xy=(xx[i],yy[i]), xytext=(xx[j],yy[j]),
