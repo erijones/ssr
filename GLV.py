@@ -11,6 +11,7 @@ import barebones_CDI as bb
 from scipy.integrate import odeint
 from scipy.integrate import ode
 from itertools import permutations
+import matplotlib.pyplot as plt
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -147,7 +148,7 @@ def get_steady_state(point, mu, M):
     initial condition point until the system reaches a steady state. Initially,
     simulations go until time=1000, but if the system doesn't converge in this
     time additional time is added to the simulation"""
-    verbose = False
+    verbose = True
     t = np.linspace(0, 100000, 100001)
     sol = odeint(integrand, point, t, args=(mu, M))
     while np.linalg.norm(sol[-1] - sol[-100]) > 1e-8:
@@ -182,7 +183,6 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
     went_to_neither = [0 for i in range(num_points)]
     for i in range(num_points):
         if (not went_to_xa[i]) and (not went_to_xb[i]):
-            break
             went_to_neither[i] = True
         else:
             went_to_neither[i] = False
@@ -197,7 +197,7 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
             separatrix_xb = p
             break
 
-    verbose = True
+    verbose = False
     if abs(separatrix_xa - separatrix_xb) <= 2/(num_points - 1):
         separatrix = ((separatrix_xa ) + (separatrix_xb)) / 2.0
         if verbose:
@@ -292,15 +292,80 @@ def get_relative_deviation(xa,xb,p):
     traj_ND = odeint(integrand, ic, t, args=(mu, M))
     traj_2D = project_to_2D(traj_ND, xa, xb)
     traj_on_plane = inflate_to_ND(traj_2D, xa, xb)
-    dxds = [np.linalg.norm(traj_ND[i+1] - traj_ND[i]) for i in range(len(traj_ND)-1)]
-    traj_length = sum(dxds)
-    deviation_from_plane = np.linalg.norm(traj_ND - traj_on_plane)
+    traj_diff = traj_ND - traj_on_plane
+    dxds_diff = [np.linalg.norm(traj_diff[i+1] - traj_diff[i]) for i in range(len(traj_diff)-1)]
+    dxds_total = [np.linalg.norm(traj_ND[i+1] - traj_ND[i]) for i in range(len(traj_ND)-1)]
+    deviation_from_plane = sum(dxds_diff)
+    traj_length = sum(dxds_total)
     relative_deviation = deviation_from_plane/traj_length
     return relative_deviation
 
+def example_food_web():
+    fig, ax = plt.subplots()
+    wheels = []
+    labels = ['A', 'B', 'C', 'D', 'E']
+    for i in range(len(labels)):
+        # save the order of colors when plotting
+        wheels.append(ax.plot([0], [0], linewidth=0.0))
+
+    import matplotlib.patches as mpatches
+    circ_size = 0.15
+    # circs are a matplotlib object
+    # xx and yy are locations of these circles (to be plotted)
+    circs = []; xx = []; yy = [];
+    print('colorwheel is', wheels[1][0].get_color())
+    for i in range(len(labels)):
+        xx.append(np.sin(2*np.pi*i/len(labels)))
+        yy.append(np.cos(2*np.pi*i/len(labels)))
+        # here I append a "Circle" object, and say that its color is what I
+        # saved earlier (in wheels)
+        circs.append(plt.Circle((xx[-1], yy[-1]), circ_size, lw=0,
+                     color=wheels[i][0].get_color()))
+
+    # plot all of the circles in ax
+    for i in range(len(labels)):
+        ax.add_artist(circs[i])
+
+    # add lines connecting circles
+    for i in range(len(labels)):
+        for j in range(len(labels)):
+            if i < j:
+                arrow_color = wheels[i][0].get_color()
+                curve_type = 'arc3,rad=0.0'
+                thickness = 2
+                # make arrows pointing from one circle to another
+                ax.annotate("", xy=(xx[i],yy[i]), xytext=(xx[j],yy[j]),
+                        zorder=1,
+                        arrowprops = dict(arrowstyle='-', facecolor=arrow_color,
+                            edgecolor=arrow_color, alpha=.5*thickness,
+                            patchA=mpatches.Circle((xx[i], yy[i]), circ_size), shrinkA=23,
+                        patchB=mpatches.Circle((xx[j], yy[j]), circ_size), shrinkB=27,
+                        connectionstyle=curve_type, linewidth = thickness))#2*abs(M[i][j])))
+
+    # add example point between two lines
+    p0 = .2
+    plt.plot( (p0*xx[0] + (1-p0)*xx[2]), (p0*yy[0] + (1-p0)*yy[2]), marker='.',
+            color='k', markersize=20, zorder=5)
+
+    edge = (1+circ_size)*1.02
+    plt.axis([-edge, edge, -edge, edge])
+    ax.set_aspect('equal')
+    plt.axis('off')
+    plt.tight_layout()
+    filename = 'figs/example_food_web.pdf'
+    plt.savefig(filename)
+    print('saved fig to {}'.format(filename))
 
 
 ## MAIN FUNCTION
+
+
+
+example_food_web()
+
+import sys
+sys.exit()
+
 
 param_list, ics = get_stein_parameters() 
 labels, mu, M, eps = param_list
@@ -384,56 +449,21 @@ if False:
             print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
   
 
-     
-
 #If this block is designated as True then all of the pairs of Stein's steady states are found. Using the bisection method the separatrices are found
 # if the steady states that correspond to the sepatratrices have meaningful trajectories then the are subsequently passed as arguments in the function
 # get_relative_deviation.
-if True:
+if False:
     combos = list(itertools.combinations(range(5), 2))
     for i,j in combos:
-            ssa = stein_steady_states[i]
-            ssb = stein_steady_states[j]
-            pstar = bisection(ssa,ssb,.0001,mu,M)
-            if isinstance(pstar, float):
-                print(pstar)
-                p1 = 1.1 * pstar
-                p2 = 0.9 * pstar
-                relative_dev =  get_relative_deviation(ssa,ssb,p1)
-                relative_dev =  get_relative_deviation(ssa,ssb,p2)
-                print('The relative devaition is {} for stein_state{} and stein_state{}'.format(relative_dev,i,j))
-            else:
-               print(pstar)
-        
-## for some random initial condition
-#pstar = bisection(xa,xb,.0001,mu,M)
-#p = pstar * 1.1
-#example_ic = get_point_on_line(xa, xb, p)
-## run a simulation to obtain high-dimensional (in this case 11D) trajectory
-#t = np.linspace(0, 25, 26)
-#traj_ND = odeint(integrand, example_ic, t, args=(mu, M))
-## use 'project_to_2D' to turn it into 2D trajectory
-#traj_2D = project_to_2D(traj_ND, xa, xb)
-## use 'inflate_to_ND' to turn it into 11D trajectory that is on the embedded 2D
-## plane
-#traj_on_plane = inflate_to_ND(traj_2D, xa, xb)
-## calculate the norm of the derivative of the trajectory at each time--- this
-## is effectively computing ds/dt, which I will then integrate (in this case
-## sum) to find s, the total arclength (called 'traj_length' here)
-#dxds = [np.linalg.norm(traj_ND[i+1] - traj_ND[i]) for i in range(len(traj_ND)-1)]
-#traj_length = sum(dxds)
-## compute the difference from original 11D trajectory and the trajectory
-## confined to the plane
-#deviation_from_plane = np.linalg.norm(traj_ND - traj_on_plane)
-## return deviation as a proportion of total trajectory length
-## if the relative deviation is small, then SSR is working well
-#relative_deviation = deviation_from_plane/traj_length
-#print('relative deviation is {}'.format(relative_deviation))
-#relative_dev =  get_relative_deviation(xa,xb,p)
-#
-
-
-
-
-
-
+        ssa = stein_steady_states[i]
+        ssb = stein_steady_states[j]
+        pstar = bisection(ssa,ssb,.0001,mu,M)
+        if isinstance(pstar, float):
+            print(pstar)
+            p1 = 1.1 * pstar
+            p2 = 0.9 * pstar
+            relative_dev_1 =  get_relative_deviation(ssa,ssb,p1)
+            relative_dev_2 =  get_relative_deviation(ssa,ssb,p2)
+            print('The relative deviation is {} and {} for stein_state{} and stein_state{}'.format(relative_dev_1, relative_dev_2,i,j))
+        else:
+            print(pstar)
