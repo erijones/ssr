@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     23772,        510]
+NotebookDataLength[     23773,        510]
 NotebookOptionsPosition[     22201,        462]
-NotebookOutlinePosition[     23172,        491]
-CellTagsIndexPosition[     22948,        484]
+NotebookOutlinePosition[     23173,        491]
+CellTagsIndexPosition[     22949,        484]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -460,7 +460,7 @@ specified controllers on an external device.\"\>", "MSG"],
  CellTags->"Info-6c96db04-7f0a-42f8-823b-2e19a73a0eac"]
 }, Open  ]]
 },
-WindowSize->{956, 1041},
+WindowSize->{1024, 1041},
 WindowMargins->{{0, Automatic}, {Automatic, 18}},
 FrontEndVersion->"10.3 for Linux x86 (64-bit) (December 10, 2015)",
 StyleDefinitions->"Default.nb"
@@ -470,28 +470,28 @@ StyleDefinitions->"Default.nb"
 (* Internal cache information *)
 (*CellTagsOutline
 CellTagsIndex->{
- "Info-7c15301f-3299-48c6-9b6b-b5015a64f05a"->{
-  Cell[8930, 242, 5282, 79, 177, "Print",
-   CellTags->"Info-7c15301f-3299-48c6-9b6b-b5015a64f05a"]},
  "Info-5112661b-2521-409f-af54-54430d772eef"->{
   Cell[14464, 333, 2193, 36, 82, "Print",
    CellTags->"Info-5112661b-2521-409f-af54-54430d772eef"]},
  "Info-6c96db04-7f0a-42f8-823b-2e19a73a0eac"->{
   Cell[16816, 378, 5369, 81, 177, "Print",
-   CellTags->"Info-6c96db04-7f0a-42f8-823b-2e19a73a0eac"]}
+   CellTags->"Info-6c96db04-7f0a-42f8-823b-2e19a73a0eac"]},
+ "Info-7c15301f-3299-48c6-9b6b-b5015a64f05a"->{
+  Cell[8930, 242, 5282, 79, 177, "Print",
+   CellTags->"Info-7c15301f-3299-48c6-9b6b-b5015a64f05a"]}
  }
 *)
 (*CellTagsIndex
 CellTagsIndex->{
- {"Info-7c15301f-3299-48c6-9b6b-b5015a64f05a", 22522, 472},
- {"Info-5112661b-2521-409f-af54-54430d772eef", 22672, 475},
- {"Info-6c96db04-7f0a-42f8-823b-2e19a73a0eac", 22822, 478}
+ {"Info-5112661b-2521-409f-af54-54430d772eef", 22523, 472},
+ {"Info-6c96db04-7f0a-42f8-823b-2e19a73a0eac", 22673, 475},
+ {"Info-7c15301f-3299-48c6-9b6b-b5015a64f05a", 22824, 478}
  }
 *)
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[580, 22, 4139, 114, 431, "Input"],
+Cell[580, 22, 4139, 114, 409, "Input"],
 Cell[4722, 138, 248, 6, 32, "Output"],
 Cell[4973, 146, 2471, 49, 350, "Output"],
 Cell[7447, 197, 1323, 36, 134, "Output"]

@@ -422,8 +422,8 @@ def example_food_web(separatrices):
     ax.set_aspect('equal')
     plt.axis('off')
     plt.tight_layout()
-#    filename = 'figs/example_food_web.pdf'
-#    plt.savefig(filename)
+    filename = 'figs/example_food_web_2.pdf'
+    plt.savefig(filename)
 #    print('saved fig to {}'.format(filename))
 
 
@@ -433,7 +433,7 @@ def example_food_web(separatrices):
 
 
 
-param_list, ics = get_stein_parameters() 
+param_list, ics = get_stein_parameters()
 labels, mu, M, eps = param_list
 fps = get_all_steady_states(mu, M)
 fps = get_nonnegative_fixedpoints(fps)
@@ -523,10 +523,14 @@ if True:
                 if conv_elem[0] == conv_elem[1]:
                     sepp_list = [conv_elem[0]] + sepp_list
        
-          
+
 sepp_list = np.array(sepp_list)
+sepp_list_copy = sepp_list[:]
+print('a',sepp_list_copy)
+# don't use unique
 sepp_list = np.unique(sepp_list)
 sepp_list = list(sepp_list)
+print('b',sepp_list)
 
 
 
