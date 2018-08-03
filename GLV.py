@@ -17,6 +17,9 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+
+
+
 def integrand(x, t, mu, M):
     """ Return N-dimensional gLV equations """
     dxdt = ( np.dot(np.diag(mu), x)
@@ -303,7 +306,8 @@ def get_relative_deviation(xa,xb,p):
     relative_deviation = deviation_from_plane/traj_length
     return relative_deviation
 
-def example_food_web():
+def example_food_web(separatrices):
+    """This function simulates a network of steady-states solutions and their sepatricies. """
     fig, ax = plt.subplots()
     wheels = []
     labels = ['A', 'B', 'C', 'D', 'E']
@@ -333,9 +337,9 @@ def example_food_web():
     for i in range(len(labels)):
         for j in range(len(labels)):
             if i < j:
-                arrow_color = wheels[i][0].get_color()
+                arrow_color = wheels[0][0].get_color()
                 curve_type = 'arc3,rad=0'
-                thickness = 2
+                thickness = 1.6
                 # make arrows pointing from one circle to another
                 ax.annotate("", xy=(xx[i],yy[i]), xytext=(xx[j],yy[j]),
                         zorder=1,
@@ -346,28 +350,87 @@ def example_food_web():
                         connectionstyle=curve_type, linewidth = thickness))#2*abs(M[i][j])))
 
     # add example point between two lines
-    p0 = .2
-    plt.plot( (p0*xx[0] + (1-p0)*xx[2]), (p0*yy[0] + (1-p0)*yy[2]), marker='.',
-            color='k', markersize=20, zorder=5)
-
+    
+    if  weigsep_list[0] < .5:
+        cgr = 'g'
+    else :
+        cgr = 'r'
+    
+    if  weigsep_list[1] < .5:
+        cgb = 'tab:blue'
+    else :
+        cgb = 'g'    
+        
+    if  weigsep_list[2] < .5:
+        cro = 'r'
+    else :
+        cro = 'tab:orange'       
+    if weigsep_list[3] < .5:
+        cpg = 'tab:purple'
+    else :
+        cpg = 'g'
+#    if weigsep_list[4] < .5:
+#        cpo = 'tab:orange'
+#    else :
+#        cpo = 'tab:purple'
+##    
+#    
+    
+#    1.) blue to red    
+    p0 = weigsep_list[0] #less than 50 green
+    plt.plot( (p0*xx[-2] + (1-p0)*xx[-3]), (p0*yy[-2] + (1-p0)*yy[-3]), marker='.',
+            color= cgr, markersize=20, zorder=5)
+    
+    p1 = weigsep_list[1]*3
+    #2.) blue to green (p0*xx[0] + (1-p0)*xx[2]), (p0*yy[0] + (1-p0)*yy[2])
+    plt.plot( (p1*xx[0] + (1-p1)*xx[2]), (p1*yy[0] + (1-p1)*yy[2]), marker='.',
+            color= cgb, markersize=20, zorder=5)
+   
+    #3.) orange to red (p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3])
+    p2 = weigsep_list[2]
+    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
+            color=cro, markersize=20, zorder=5)
+    
+    #4.) purple to green(p3*xx[2] + (1-p3)*xx[4]), (p4*yy[2] + (1-p3)*yy[4])
+    p3 = weigsep_list[3]
+    plt.plot((p3*xx[2] + (1-p3)*xx[4]), (p3*yy[2] + (1-p3)*yy[4]), marker='.',
+            color=cpg , markersize=20, zorder=5)
+##Don't delete
+##    5.) purple to orange (p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1])
+#    p4 = weigsep_list[4]
+#    plt.plot((p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1]), marker='.',
+#            color=cpo, markersize=20, zorder=5)
+#    #blue to red(p5*xx[-2] + (1-p5)*xx[0]), (p5*yy[-2] + (1-p5)*yy[0])
+#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
+#            color='k', markersize=20, zorder=5)
+#    #blue to purple (p6*xx[-1] + (1-p6)*xx[0]), (p6*yy[-1] + (1-p6)*yy[0])
+#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
+#            color='k', markersize=20, zorder=5)
+#    # blue to orange (p7*xx[0] + (1-p7)*xx[1]), (p7*yy[0] + (1-p7)*yy[1])
+#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
+#            color='k', markersize=20, zorder=5)
+#    #purple to red (p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4])
+#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
+#            color='k', markersize=20, zorder=5)
+#    #orange to green (p9*xx[2] + (1-p9)*xx[-4]), (p9*yy[2] + (1-p9)*yy[-4])
+#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
+#            color='k', markersize=20, zorder=5)
+#    #red to green (p10*xx[-2] + (1-p10)*xx[-3]), (p10*yy[-2] + (1-p10)*yy[-3])
+    
     edge = (1+circ_size)*1.02
     plt.axis([-edge, edge, -edge, edge])
     ax.set_aspect('equal')
     plt.axis('off')
     plt.tight_layout()
-    filename = 'figs/example_food_web.pdf'
-    plt.savefig(filename)
-    print('saved fig to {}'.format(filename))
+#    filename = 'figs/example_food_web.pdf'
+#    plt.savefig(filename)
+#    print('saved fig to {}'.format(filename))
 
 
 ## MAIN FUNCTION
 
 
 
-example_food_web()
-
-import sys
-sys.exit()
 
 
 param_list, ics = get_stein_parameters() 
@@ -423,7 +486,8 @@ for fp in fps:
         num_stable_fps += 1
         fp_list2.append(fp)
 fp_list2 = np.array(fp_list2)
-print('there were {} stein stable fps out of {} total cases'.format(num_stable_fps, len(fps)))
+if False:
+    print('there were {} stein stable fps out of {} total cases'.format(num_stable_fps, len(fps)))
 
 test_call = bb.get_all_ss()
 stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
@@ -438,19 +502,54 @@ call = SSR(xa,xb,mu,M)
 stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
 
 #returns all iterations of the possible combinations of Stein's Steady States
-if False:
+sepp_list = []
+if True:
     combos = list(itertools.combinations(range(5), 2))
     for i,j in combos:
             ssa = stein_steady_states[i]
             ssb = stein_steady_states[j]
             temp_separatrix_11D = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
             nu,L = SSR(ssa,ssb,mu,M)
-            temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=101)
-            print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
-            print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
+#            temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=101)
+#            print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
+#            print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
             bisected_separatrix_11D = bisection(ssa, ssb, .0001, mu, M)
-            print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
-  
+#            print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
+            
+            if type(bisected_separatrix_11D) is float :
+                sepp_list = sepp_list + [bisected_separatrix_11D]
+            elif type(bisected_separatrix_11D) is tuple :
+                conv_elem = np.array(bisected_separatrix_11D)
+                if conv_elem[0] == conv_elem[1]:
+                    sepp_list = [conv_elem[0]] + sepp_list
+       
+          
+sepp_list = np.array(sepp_list)
+sepp_list = np.unique(sepp_list)
+sepp_list = list(sepp_list)
+
+
+
+weigsep_list = []
+for elem in sepp_list:
+   
+    if elem > .9:
+        new_elem = .8
+        weigsep_list = weigsep_list + [new_elem]
+   
+    elif elem <.1:
+        elem = .2
+        weigsep_list = weigsep_list + [elem]
+   
+    else :
+        elem = elem
+        weigsep_list = weigsep_list + [elem]
+print('weigsep_list')
+print(weigsep_list)
+if True:
+    example_food_web(weigsep_list)
+    import sys
+    sys.exit()
 
 #If this block is designated as True then all of the pairs of Stein's steady states are found. Using the bisection method the separatrices are found
 # if the steady states that correspond to the sepatratrices have meaningful trajectories then the are subsequently passed as arguments in the function
@@ -462,11 +561,15 @@ if False:
         ssb = stein_steady_states[j]
         pstar = bisection(ssa,ssb,.0001,mu,M)
         if isinstance(pstar, float):
+            print('the pstar is')
             print(pstar)
             p1 = 1.1 * pstar
             p2 = 0.9 * pstar
             relative_dev_1 =  get_relative_deviation(ssa,ssb,p1)
             relative_dev_2 =  get_relative_deviation(ssa,ssb,p2)
             print('The relative deviation is {} and {} for stein_state{} and stein_state{}'.format(relative_dev_1, relative_dev_2,i,j))
+            print('--------')
         else:
             print(pstar)
+            print('--')
+
