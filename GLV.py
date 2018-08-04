@@ -354,35 +354,59 @@ def example_food_web(separatrices):
     if  weigsep_list[0] < .5:
         cgr = 'g'
     else :
-        cgr = 'r'
+        cgr = 'tab:red'
     
     if  weigsep_list[1] < .5:
-        cgb = 'tab:blue'
+        cgb = 'g'
     else :
-        cgb = 'g'    
+        cgb = 'tab:blue'   
         
     if  weigsep_list[2] < .5:
-        cro = 'r'
+        cro = 'tab:red'
     else :
         cro = 'tab:orange'       
     if weigsep_list[3] < .5:
         cpg = 'tab:purple'
     else :
         cpg = 'g'
-#    if weigsep_list[4] < .5:
-#        cpo = 'tab:orange'
-#    else :
-#        cpo = 'tab:purple'
-##    
+    if weigsep_list[4] < .5:
+        cpo = 'tab:orange'
+    else :
+        cpo = 'tab:purple'
+    if weigsep_list[5] < .5:
+        cbr = 'tab:blue'
+    else :
+        cbr = 'tab:red'
+    if weigsep_list[6] < .5:
+        cbp = 'tab:blue'
+    else :
+        cbp = 'tab:purple'
+    if weigsep_list[7] < .5:
+        cbo = 'tab:orange'
+    else :
+        cbo = 'tab:blue'
+    if weigalt_list[0] < .5:
+        cpr = 'tab:purple'
+    else :
+        cpr = 'tab:red'
+    if weigalt_list[2]< .5:
+        cog = 'tab:orange'
+    else :
+        cog = 'tab:green'
+    if weigalt_list[3]< .5:
+        cogg = 'tab:orange'
+    else :
+        cogg = 'tab:green'
+#    
 #    
     
 #    1.) blue to red    
-    p0 = weigsep_list[0] #less than 50 green
+    p0 = weigsep_list[0]
     plt.plot( (p0*xx[-2] + (1-p0)*xx[-3]), (p0*yy[-2] + (1-p0)*yy[-3]), marker='.',
             color= cgr, markersize=20, zorder=5)
     
-    p1 = weigsep_list[1]*3
-    #2.) blue to green (p0*xx[0] + (1-p0)*xx[2]), (p0*yy[0] + (1-p0)*yy[2])
+    p1 = weigsep_list[1]
+     #2.) blue to green (p0*xx[0] + (1-p0)*xx[2]), (p0*yy[0] + (1-p0)*yy[2])
     plt.plot( (p1*xx[0] + (1-p1)*xx[2]), (p1*yy[0] + (1-p1)*yy[2]), marker='.',
             color= cgb, markersize=20, zorder=5)
    
@@ -395,35 +419,48 @@ def example_food_web(separatrices):
     p3 = weigsep_list[3]
     plt.plot((p3*xx[2] + (1-p3)*xx[4]), (p3*yy[2] + (1-p3)*yy[4]), marker='.',
             color=cpg , markersize=20, zorder=5)
-##Don't delete
-##    5.) purple to orange (p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1])
-#    p4 = weigsep_list[4]
-#    plt.plot((p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1]), marker='.',
-#            color=cpo, markersize=20, zorder=5)
-#    #blue to red(p5*xx[-2] + (1-p5)*xx[0]), (p5*yy[-2] + (1-p5)*yy[0])
-#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
-#            color='k', markersize=20, zorder=5)
-#    #blue to purple (p6*xx[-1] + (1-p6)*xx[0]), (p6*yy[-1] + (1-p6)*yy[0])
-#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
-#            color='k', markersize=20, zorder=5)
-#    # blue to orange (p7*xx[0] + (1-p7)*xx[1]), (p7*yy[0] + (1-p7)*yy[1])
-#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
-#            color='k', markersize=20, zorder=5)
-#    #purple to red (p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4])
-#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
-#            color='k', markersize=20, zorder=5)
+###Don't delete
+#    5.) purple to orange (p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1])
+    p4 = weigsep_list[4]
+    plt.plot((p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1]), marker='.',
+            color=cpo, markersize=20, zorder=5)
+    #blue to red(p5*xx[-2] + (1-p5)*xx[0]), (p5*yy[-2] + (1-p5)*yy[0])
+    p5 = weigsep_list[5]
+    plt.plot((p5*xx[-2] + (1-p5)*xx[0]), (p5*yy[-2] + (1-p5)*yy[0]), marker='.',
+            color=cbr, markersize=20, zorder=5)
+    #blue to purple (p6*xx[-1] + (1-p6)*xx[0]), (p6*yy[-1] + (1-p6)*yy[0])
+    p6 = weigsep_list[6]
+    plt.plot((p6*xx[-1] + (1-p6)*xx[0]), (p6*yy[-1] + (1-p6)*yy[0]), marker='.',
+            color=cbp, markersize=20, zorder=5)
+    # blue to orange (p7*xx[0] + (1-p7)*xx[1]), (p7*yy[0] + (1-p7)*yy[1])
+    p7 = weigsep_list[7]
+    plt.plot((p7*xx[0] + (1-p7)*xx[1]), (p7*yy[0] + (1-p7)*yy[1]), marker='.',
+            color=cbo, markersize=20, zorder=5)
+    
+    #purple to red (p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4])
+    p8 = weigalt_list[0]
+    plt.plot((p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4]), marker='.',
+            color=cpr, markersize=20, zorder=5)
+    p8 = weigalt_list[1]*.9
+    plt.plot((p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4]), marker='.',
+            color=cpr, markersize=20, zorder=5)
+
+  
 #    #orange to green (p9*xx[2] + (1-p9)*xx[-4]), (p9*yy[2] + (1-p9)*yy[-4])
-#    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
-#            color='k', markersize=20, zorder=5)
-#    #red to green (p10*xx[-2] + (1-p10)*xx[-3]), (p10*yy[-2] + (1-p10)*yy[-3])
+    p9 = weigalt_list[2]
+    plt.plot((p9*xx[2] + (1-p9)*xx[-4]), (p9*yy[2] + (1-p9)*yy[-4]), marker='.',
+            color=cog, markersize=20, zorder=5)
+    p10 = weigalt_list[3]
+    plt.plot((p10*xx[2] + (1-p10)*xx[-4]), (p10*yy[2] + (1-p10)*yy[-4]), marker='.',
+            color=cogg, markersize=20, zorder=5)
     
     edge = (1+circ_size)*1.02
     plt.axis([-edge, edge, -edge, edge])
     ax.set_aspect('equal')
     plt.axis('off')
     plt.tight_layout()
-    filename = 'figs/example_food_web_2.pdf'
-    plt.savefig(filename)
+#    filename = 'figs/example_food_web.pdf'
+#    plt.savefig(filename)
 #    print('saved fig to {}'.format(filename))
 
 
@@ -433,7 +470,7 @@ def example_food_web(separatrices):
 
 
 
-param_list, ics = get_stein_parameters()
+param_list, ics = get_stein_parameters() 
 labels, mu, M, eps = param_list
 fps = get_all_steady_states(mu, M)
 fps = get_nonnegative_fixedpoints(fps)
@@ -503,43 +540,59 @@ stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
 
 #returns all iterations of the possible combinations of Stein's Steady States
 sepp_list = []
+twodsepp_list = []
+elevendsepp_list = []
 if True:
     combos = list(itertools.combinations(range(5), 2))
+    alt_list = []
     for i,j in combos:
             ssa = stein_steady_states[i]
             ssb = stein_steady_states[j]
             temp_separatrix_11D = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
             nu,L = SSR(ssa,ssb,mu,M)
-#            temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=101)
-#            print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
-#            print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
+            temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=101)
+            print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
+            print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
             bisected_separatrix_11D = bisection(ssa, ssb, .0001, mu, M)
-#            print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
+            print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
+            
+            
+            twodsepp_list = twodsepp_list + [temp_separatrix_2D]
+            elevendsepp_list = elevendsepp_list + [temp_separatrix_11D]
             
             if type(bisected_separatrix_11D) is float :
+                print('float is')
+                print(bisected_separatrix_11D)
                 sepp_list = sepp_list + [bisected_separatrix_11D]
             elif type(bisected_separatrix_11D) is tuple :
+                print('typle is')
+                print(np.array(bisected_separatrix_11D))
                 conv_elem = np.array(bisected_separatrix_11D)
                 if conv_elem[0] == conv_elem[1]:
+                    print('conv_elem[0] == conv_elem[1]')
                     sepp_list = [conv_elem[0]] + sepp_list
+                if conv_elem[0] != conv_elem[1]:
+                    ('conv_elem[0] != conv_elem[1]')
+                    print('conv element 1 and two is equal to')
+                    print(conv_elem[0])
+                    print(conv_elem[1])
+                    alt_list  = [conv_elem[0]] +  [conv_elem[1]] + alt_list
+                    
        
-
+l = np.array([.84,.99])         
 sepp_list = np.array(sepp_list)
-sepp_list_copy = sepp_list[:]
-print('a',sepp_list_copy)
-# don't use unique
-sepp_list = np.unique(sepp_list)
 sepp_list = list(sepp_list)
-print('b',sepp_list)
 
 
 
 weigsep_list = []
+weigalt_list = []
 for elem in sepp_list:
    
     if elem > .9:
         new_elem = .8
         weigsep_list = weigsep_list + [new_elem]
+        
    
     elif elem <.1:
         elem = .2
@@ -548,8 +601,24 @@ for elem in sepp_list:
     else :
         elem = elem
         weigsep_list = weigsep_list + [elem]
-print('weigsep_list')
-print(weigsep_list)
+
+for element in alt_list:
+   
+    if element > .9:
+        element = .8
+        weigalt_list = weigalt_list + [element]
+    elif element <.1:
+        element = .2
+        weigalt_list = weigalt_list + [element]
+   
+    else :
+        element = element
+        weigalt_list = weigalt_list + [element]
+        
+        print('weigalt_list')
+
+
+print(weigalt_list)
 if True:
     example_food_web(weigsep_list)
     import sys
