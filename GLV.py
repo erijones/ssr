@@ -402,58 +402,97 @@ def example_food_web(separatrices):
     
 #    1.) blue to red    
     p0 = weigsep_list[0]
+    p0star = weigsep_list2d[0]
+    
     plt.plot( (p0*xx[-2] + (1-p0)*xx[-3]), (p0*yy[-2] + (1-p0)*yy[-3]), marker='.',
             color= cgr, markersize=20, zorder=5)
+
+    plt.plot( (p0star*xx[-2] + (1-p0star)*xx[-3]), (p0star*yy[-2] + (1-p0star)*yy[-3]), marker='+',
+            color= cgr, markersize=20, zorder=5)    
     
     p1 = weigsep_list[1]
+    p1star = weigsep_list2d[1]
      #2.) blue to green (p0*xx[0] + (1-p0)*xx[2]), (p0*yy[0] + (1-p0)*yy[2])
     plt.plot( (p1*xx[0] + (1-p1)*xx[2]), (p1*yy[0] + (1-p1)*yy[2]), marker='.',
             color= cgb, markersize=20, zorder=5)
+    plt.plot( (p1star*xx[0] + (1-p1star)*xx[2]), (p1star*yy[0] + (1-p1star)*yy[2]), marker='+',
+            color= cgb, markersize=20, zorder=5)    
    
     #3.) orange to red (p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3])
     p2 = weigsep_list[2]
+    p2star = weigsep_list2d[2]
     plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
+            color=cro, markersize=20, zorder=5)
+    plt.plot((p2star*xx[1] + (1-p2star)*xx[3]), (p2star*yy[1] + (1-p2star)*yy[3]), marker='+',
             color=cro, markersize=20, zorder=5)
     
     #4.) purple to green(p3*xx[2] + (1-p3)*xx[4]), (p4*yy[2] + (1-p3)*yy[4])
     p3 = weigsep_list[3]
+    p3star = weigsep_list2d[3]
     plt.plot((p3*xx[2] + (1-p3)*xx[4]), (p3*yy[2] + (1-p3)*yy[4]), marker='.',
             color=cpg , markersize=20, zorder=5)
-###Don't delete
+    plt.plot((p3star*xx[2] + (1-p3star)*xx[4]), (p3star*yy[2] + (1-p3star)*yy[4]), marker='+',
+            color=cpg , markersize=20, zorder=5)
+    
 #    5.) purple to orange (p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1])
     p4 = weigsep_list[4]
+    p4star = weigsep_list2d[4]
     plt.plot((p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1]), marker='.',
+            color=cpo, markersize=20, zorder=5)
+    plt.plot((p4star*xx[-1] + (1-p4star)*xx[1]), (p4star*yy[-1] + (1-p4star)*yy[1]), marker='+',
             color=cpo, markersize=20, zorder=5)
     #blue to red(p5*xx[-2] + (1-p5)*xx[0]), (p5*yy[-2] + (1-p5)*yy[0])
     p5 = weigsep_list[5]
+    p5star = weigsep_list2d[5]
+    
     plt.plot((p5*xx[-2] + (1-p5)*xx[0]), (p5*yy[-2] + (1-p5)*yy[0]), marker='.',
+            color=cbr, markersize=20, zorder=5)
+    plt.plot((p5star*xx[-2] + (1-p5star)*xx[0]), (p5star*yy[-2] + (1-p5star)*yy[0]), marker='+',
             color=cbr, markersize=20, zorder=5)
     #blue to purple (p6*xx[-1] + (1-p6)*xx[0]), (p6*yy[-1] + (1-p6)*yy[0])
     p6 = weigsep_list[6]
+    p6star = weigsep_list2d[6]
+    plt.plot((p6star*xx[-1] + (1-p6star)*xx[0]), (p6star*yy[-1] + (1-p6star)*yy[0]), marker='+',
+            color=cbp, markersize=20, zorder=5)
     plt.plot((p6*xx[-1] + (1-p6)*xx[0]), (p6*yy[-1] + (1-p6)*yy[0]), marker='.',
             color=cbp, markersize=20, zorder=5)
     # blue to orange (p7*xx[0] + (1-p7)*xx[1]), (p7*yy[0] + (1-p7)*yy[1])
     p7 = weigsep_list[7]
+    p7star = weigsep_list2d[7]
     plt.plot((p7*xx[0] + (1-p7)*xx[1]), (p7*yy[0] + (1-p7)*yy[1]), marker='.',
             color=cbo, markersize=20, zorder=5)
+    plt.plot((p7star*xx[0] + (1-p7star)*xx[1]), (p7star*yy[0] + (1-p7star)*yy[1]), marker='+',
+            color=cbo, markersize=20, zorder=5)
+
     
     #purple to red (p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4])
     p8 = weigalt_list[0]
+    p8star = weigalt_list2d[0]
     plt.plot((p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4]), marker='.',
+            color=cpr, markersize=20, zorder=5)
+    plt.plot((p8star*xx[-2] + (1-p8star)*xx[4]), (p8star*yy[-2] + (1-p8star)*yy[4]), marker='+',
             color=cpr, markersize=20, zorder=5)
     p8 = weigalt_list[1]*.9
+    p8star = weigalt_list2d[1] 
     plt.plot((p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4]), marker='.',
             color=cpr, markersize=20, zorder=5)
-
+    plt.plot((p8star*xx[-2] + (1-p8star)*xx[4]), (p8star*yy[-2] + (1-p8star)*yy[4]), marker='+',
+            color=cpr, markersize=20, zorder=5)
   
 #    #orange to green (p9*xx[2] + (1-p9)*xx[-4]), (p9*yy[2] + (1-p9)*yy[-4])
     p9 = weigalt_list[2]
+    p9star = weigalt_list[2]
+    plt.plot((p9star*xx[2] + (1-p9star)*xx[-4]), (p9star*yy[2] + (1-p9star)*yy[-4]), marker='+',
+            color=cog, markersize=20, zorder=5)
     plt.plot((p9*xx[2] + (1-p9)*xx[-4]), (p9*yy[2] + (1-p9)*yy[-4]), marker='.',
             color=cog, markersize=20, zorder=5)
     p10 = weigalt_list[3]
-    plt.plot((p10*xx[2] + (1-p10)*xx[-4]), (p10*yy[2] + (1-p10)*yy[-4]), marker='.',
+    p10star = weigalt_list[3]
+    plt.plot((p10star*xx[2] + (1-p10star)*xx[-4]), (p10star*yy[2] + (1-p10star)*yy[-4]), marker='+',
             color=cogg, markersize=20, zorder=5)
-    
+
+    plt.plot((p10*xx[2] + (1-p10)*xx[-4]), (p10*yy[2] + (1-p10)*yy[-4]), marker='.',
+            color=cogg, markersize=20, zorder=5)   
     edge = (1+circ_size)*1.02
     plt.axis([-edge, edge, -edge, edge])
     ax.set_aspect('equal')
@@ -539,55 +578,65 @@ call = SSR(xa,xb,mu,M)
 stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
 
 #returns all iterations of the possible combinations of Stein's Steady States
-sepp_list = []
+
+sepp_list_11d = []
+sepp_list_2d = []
+alt_list_11d = []
+alt_list_2d = []
 twodsepp_list = []
 elevendsepp_list = []
+bisected_list_11d = []
+
 if True:
+
     combos = list(itertools.combinations(range(5), 2))
-    alt_list = []
     for i,j in combos:
             ssa = stein_steady_states[i]
             ssb = stein_steady_states[j]
             temp_separatrix_11D = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
             nu,L = SSR(ssa,ssb,mu,M)
             temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=101)
-            print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
-            print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
+#            print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
+#            print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
             bisected_separatrix_11D = bisection(ssa, ssb, .0001, mu, M)
-            print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
+#            print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
             
+
             
             twodsepp_list = twodsepp_list + [temp_separatrix_2D]
             elevendsepp_list = elevendsepp_list + [temp_separatrix_11D]
+            bisected_list_11d = bisected_list_11d + [bisected_separatrix_11D]
             
-            if type(bisected_separatrix_11D) is float :
-                print('float is')
-                print(bisected_separatrix_11D)
-                sepp_list = sepp_list + [bisected_separatrix_11D]
-            elif type(bisected_separatrix_11D) is tuple :
-                print('typle is')
-                print(np.array(bisected_separatrix_11D))
-                conv_elem = np.array(bisected_separatrix_11D)
-                if conv_elem[0] == conv_elem[1]:
-                    print('conv_elem[0] == conv_elem[1]')
-                    sepp_list = [conv_elem[0]] + sepp_list
-                if conv_elem[0] != conv_elem[1]:
-                    ('conv_elem[0] != conv_elem[1]')
-                    print('conv element 1 and two is equal to')
-                    print(conv_elem[0])
-                    print(conv_elem[1])
-                    alt_list  = [conv_elem[0]] +  [conv_elem[1]] + alt_list
+            
+for i in range(len(elevendsepp_list)):
+    elem2d = np.array(twodsepp_list[i]) 
+    elem2d = list(elem2d)
+    elem11d = np.array(elevendsepp_list[i])
+    elem11d = list(elem11d)
+    
+
+
+    if round(elem11d[0],2) == round(elem11d[1],2):
+        sepp_list_11d = [elem11d[0]] + sepp_list_11d
+        sepp_list_2d =   [elem2d[0]] + sepp_list_2d 
+    elif round(elem11d[0],2)  != round(elem11d[1],2) :
+        alt_list_11d  = [elem11d[0]] + [elem11d[1]] + alt_list_11d
+        alt_list_2d = [elem2d[0]] + [elem2d[1]] + alt_list_2d
                     
        
-l = np.array([.84,.99])         
-sepp_list = np.array(sepp_list)
-sepp_list = list(sepp_list)
+#l = np.array([.84,.99])         
+#sepp_list11d = np.array(sepp_list11d)
+#sepp_list11d = list(sepp_list11d)
 
 
 
 weigsep_list = []
 weigalt_list = []
-for elem in sepp_list:
+weigsep_list2d = []
+weigalt_list = []
+weigalt_list2d = []
+
+for elem in sepp_list_11d:
    
     if elem > .9:
         new_elem = .8
@@ -597,16 +646,35 @@ for elem in sepp_list:
     elif elem <.1:
         elem = .2
         weigsep_list = weigsep_list + [elem]
+        
    
     else :
         elem = elem
         weigsep_list = weigsep_list + [elem]
+        
+for elem in sepp_list_2d:
+   
+    if elem > .9:
+        new_elem = .8
+        weigsep_list2d = weigsep_list2d + [new_elem]
+        
+   
+    elif elem <.1:
+        elem = .2
+        weigsep_list2d = weigsep_list2d + [elem]
+        
+   
+    else :
+        elem = elem
+        weigsep_list2d = weigsep_list2d + [elem]
+        
 
-for element in alt_list:
+for element in alt_list_11d:
    
     if element > .9:
         element = .8
         weigalt_list = weigalt_list + [element]
+        
     elif element <.1:
         element = .2
         weigalt_list = weigalt_list + [element]
@@ -615,10 +683,22 @@ for element in alt_list:
         element = element
         weigalt_list = weigalt_list + [element]
         
-        print('weigalt_list')
+for element in alt_list_2d:
+   
+    if element > .9:
+        element = .8
+        weigalt_list2d = weigalt_list2d + [element]
+        
+    elif element <.1:
+        element = .2
+        weigalt_list2d = weigalt_list2d + [element]
+   
+    else :
+        element = element
+        weigalt_list2d = weigalt_list2d + [element]
+        
+        
 
-
-print(weigalt_list)
 if True:
     example_food_web(weigsep_list)
     import sys
