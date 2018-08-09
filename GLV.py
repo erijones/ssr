@@ -12,13 +12,10 @@ from scipy.integrate import odeint
 from scipy.integrate import ode
 from itertools import permutations
 import matplotlib.pyplot as plt
+import pickle
 
 import warnings
 warnings.filterwarnings("ignore")
-
-
-
-
 
 def integrand(x, t, mu, M):
     """ Return N-dimensional gLV equations """
@@ -111,17 +108,51 @@ def get_all_steady_states(mu, M):
     fixedpointslist = np.array(fixedpointslist)
     return fixedpointslist
 
-#def get_stein_steady_states(mu, M):
-
-
 def get_nonnegative_fixedpoints(fps):
     """ Returns fixed points that are nonnegative """
-
     fps_positive_list = []
     for fp in fps:
         if all(fp >= -1e-8):
             fps_positive_list.append(fp)
     return np.array(fps_positive_list)
+
+def get_nonnegative_stable_fps(mu, M):
+    all_fps = get_all_steady_states(mu, M)
+    fps = get_nonnegative_fixedpoints(all_fps)
+
+    fp_list = []
+    num_stable_fps = 0
+
+    for fp in fps:
+        # make sure all fixed points are actually fixed points
+        output = integrand(fp, 0, mu, M)
+        assert(all(abs(output) < 1e-6))
+
+        is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
+        if is_stable:
+            num_stable_fps += 1
+            fp_list.append(fp)
+    fp_list = np.array(fp_list)
+    return fp_list
+
+def get_nonnegative_unstable_fps(mu, M, num_unstable):
+    all_fps = get_all_steady_states(mu, M)
+    fps = get_nonnegative_fixedpoints(all_fps)
+
+    fp_list = []
+    num_stable_fps = 0
+    for fp in fps:
+        # make sure all fixed points are actually fixed points
+        output = integrand(fp, 0, mu, M)
+        assert(all(abs(output) < 1e-6))
+
+        is_stable = get_stability(fp, mu, M, almost_stable=num_unstable, substability=False)
+        if is_stable:
+            num_stable_fps += 1
+            fp_list.append(fp)
+    fp_list = np.array(fp_list)
+    return fp_list
+
 
 def get_param_line_equation(xa, xb):
     """ Print the equation for the line that goes through xa and xb """
@@ -151,7 +182,7 @@ def get_steady_state(point, mu, M):
     initial condition point until the system reaches a steady state. Initially,
     simulations go until time=1000, but if the system doesn't converge in this
     time additional time is added to the simulation"""
-    verbose = True
+    verbose = False 
     t = np.linspace(0, 100000, 100001)
     sol = odeint(integrand, point, t, args=(mu, M))
     while np.linalg.norm(sol[-1] - sol[-100]) > 1e-8:
@@ -175,7 +206,6 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
     attraction do not agree, i.e. separatrix_xa and separatrix_xb are
     different, it returns a tuple (separatrix_xa, separatrix_xb) to
     differentiate the basins of attraction. """
-
     ps = np.linspace(0, 1, num_points)
     points = np.array([get_point_on_line(xa, xb, p) for p in ps])
     final_vals = np.array([get_steady_state(point, mu, M) for point in points])
@@ -207,14 +237,27 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
             print('separatrix between xa and xb occurs at p={:.5}'.format(separatrix))
         return separatrix, separatrix
     else:
-        if sum(went_to_neither) > 0:
-            neither_index = went_to_neither.index(True)
-            neither_val = get_steady_state(points[neither_index], mu, M)
-            print('    coexistent steady state occurs at {}'.format(neither_val))
         if verbose:
             print('basin of attraction for xa ends at p={:.5}'.format(separatrix_xa))
             print('basin of attraction for xb ends at p={:.5}'.format(separatrix_xb))
-        return separatrix_xa, separatrix_xb
+        if sum(went_to_neither) > 0:
+            neither_index = went_to_neither.index(True)
+            neither_val = get_steady_state(points[neither_index], mu, M)
+            if len(mu) == 2:
+                print('    instead {}D traj goes to steady state at {}'.format(len(mu), neither_val))
+
+            if len(mu) > 2:
+                unstable_2_fps = get_nonnegative_unstable_fps(mu, M, 2)
+                stein_fps = get_stein_steady_states(unstable_2_fps)
+                coexist_index = False
+                labels = ['A', 'B', 'C', 'D', 'E']
+                for i,stein_fp in enumerate(stein_fps):
+                    if np.linalg.norm(neither_val - stein_fp) < .001:
+                        coexist_index = labels[i]
+                print('    instead {}D traj goes to steady state {}'.format(len(mu), coexist_index))
+            return separatrix_xa, separatrix_xb
+        else:
+            return separatrix_xa, separatrix_xb
 
 
 def SSR(xa,xb,mu,M):
@@ -228,17 +271,22 @@ def SSR(xa,xb,mu,M):
                  [np.dot(xb.T,np.dot(M,xa)), np.dot(xb.T,np.dot(M,xb))]])
     return nu,L
 
-def get_stein_steady_states(stein_values,steady_state_2_list):
-   """This function imports  values from the dictionary that contains "stein's steady states" 
-   and  also imports steady states with up to 2 unstable directions (almost_stable=2). This 
-   code outputs matching steady states between stein's set and the calculated set""" 
-   final_list = []
-   iterations_list =  list(itertools.product(stein_values,steady_state_2_list))
-   for i in range(len(iterations_list )):
-       compare_lists = iterations_list[i]
-       if np.linalg.norm(compare_lists[0] - compare_lists[1]) < .001:
-           final_list = final_list + [compare_lists[0]]
-   return final_list
+def get_stein_steady_states(fps):
+    """This function imports  values from the dictionary that contains "stein's steady states" 
+    and  also imports steady states with up to 2 unstable directions (almost_stable=2). This 
+    code outputs matching steady states between stein's set and the calculated set"""
+    stein_dict = bb.get_all_ss()
+    stein_ss = np.array([stein_dict[val] for val in stein_dict])
+
+    final_list = np.array([np.zeros(len(stein_ss[0])) for i in range(5)])
+    iterations_list =  list(itertools.product(stein_ss, fps))
+    for i in range(len(iterations_list )):
+        compare_lists = iterations_list[i]
+        if np.linalg.norm(compare_lists[0] - compare_lists[1]) < .001:
+            for j in range(5):
+                if np.linalg.norm(compare_lists[1] - stein_ss[j]) < .001:
+                    final_list[j] = compare_lists[1]
+    return final_list
 
 def bisection(xa,xb,eps, mu, M):
     """Identify the separatrix (as a proportion p between xa and xb) for the
@@ -255,9 +303,14 @@ def bisection(xa,xb,eps, mu, M):
         elif not goes_to_xa(xa,xb,val) and goes_to_xb(xa,xb,val):
             p2 = po
         else:
-            po = get_separatrix_point(xa,xb,mu,M, 101)
+            po = get_separatrix_point(xa, xb, mu, M, 201)
             break
-            
+    verbose = True
+    if verbose:
+        N = len(mu)
+        if isinstance(po, float):
+            print('    {}D separatrix at p={}'.format(N, po))
+
     return po
 
 def project_to_2D(traj, ssa, ssb):
@@ -283,7 +336,7 @@ def inflate_to_ND(traj, ssa, ssb):
     new_traj = np.array(new_traj)
     return new_traj
 
-def get_relative_deviation(xa,xb,p):  
+def get_relative_deviation(xa,xb,p):
     """ This function generates a trajectory in 11D with an initial condition.  
     The 11D trajectory is projected onto a 2D plane and subsequently inflated back to 11D. 
     Subsequently the trajectory length is found by summing  infinitesimally small
@@ -306,9 +359,9 @@ def get_relative_deviation(xa,xb,p):
     relative_deviation = deviation_from_plane/traj_length
     return relative_deviation
 
-def example_food_web(separatrices):
+def make_food_web(sep_list_2D, sep_list_11D):
     """This function simulates a network of steady-states solutions and their sepatricies. """
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(6,6))
     wheels = []
     labels = ['A', 'B', 'C', 'D', 'E']
     for i in range(len(labels)):
@@ -320,34 +373,67 @@ def example_food_web(separatrices):
     # circs are a matplotlib object
     # xx and yy are locations of these circles (to be plotted)
     circs = []; xx = []; yy = [];
-    print('colorwheel is', wheels[1][0].get_color())
+    circ_xx = []; circ_yy = []
+    #print('colorwheel is', wheels[1][0].get_color())
+    labels = ['A', 'B', 'C', 'D', 'E']
     for i in range(len(labels)):
         xx.append(np.sin(2*np.pi*i/len(labels)))
         yy.append(np.cos(2*np.pi*i/len(labels)))
+        circ_xx.append(1.13*np.sin(2*np.pi*i/len(labels)))
+        circ_yy.append(1.13*np.cos(2*np.pi*i/len(labels)))
         # here I append a "Circle" object, and say that its color is what I
         # saved earlier (in wheels)
-        circs.append(plt.Circle((xx[-1], yy[-1]), circ_size, lw=0,
+        circs.append(plt.Circle((circ_xx[-1], circ_yy[-1]), circ_size, lw=0,
                      color=wheels[i][0].get_color()))
+        plt.text(circ_xx[-1], circ_yy[-1], labels[i], weight='bold', ha='center',
+                va='center', fontsize=28, color='black')
 
     # plot all of the circles in ax
     for i in range(len(labels)):
         ax.add_artist(circs[i])
+        True
 
     # add lines connecting circles
     for i in range(len(labels)):
         for j in range(len(labels)):
-            if i < j:
-                arrow_color = wheels[0][0].get_color()
-                curve_type = 'arc3,rad=0'
-                thickness = 1.6
-                # make arrows pointing from one circle to another
-                ax.annotate("", xy=(xx[i],yy[i]), xytext=(xx[j],yy[j]),
-                        zorder=1,
-                        arrowprops = dict(arrowstyle='-', facecolor=arrow_color,
-                            edgecolor=arrow_color, alpha=.5*thickness,
-                            patchA=mpatches.Circle((xx[i], yy[i]), circ_size), shrinkA=23,
-                        patchB=mpatches.Circle((xx[j], yy[j]), circ_size), shrinkB=27,
-                        connectionstyle=curve_type, linewidth = thickness))#2*abs(M[i][j])))
+            if i == j:
+                continue
+            arrow_color = wheels[i][0].get_color()
+            p = sep_list_11D[(i,j)]
+            try:
+                if i < j:
+                    point = np.array([xx[i]*p + xx[j]*(1-p), yy[i]*p + yy[j]*(1-p)])
+                else:
+                    point = np.array([xx[j]*p + xx[i]*(1-p), yy[j]*p + yy[i]*(1-p)])
+            except TypeError:
+                print(i, j, p)
+                if i > j:
+                    point = np.array([xx[i]*p[0] + xx[j]*(1-p[0]), yy[i]*p[0] + yy[j]*(1-p[0])])
+                else:
+                    point = np.array([xx[i]*p[1] + xx[j]*(1-p[1]), yy[i]*p[1] + yy[j]*(1-p[1])])
+            print(point)
+            plt.plot(point[0], point[1], marker='.', color='k', markersize=9)
+            curve_type = 'arc3,rad=0'
+            thickness = 1.6
+            # make arrows pointing from one circle to another
+            ax.annotate("", xy=(xx[i],yy[i]), xytext=(point[0], point[1]),
+                    zorder=1,
+                    arrowprops = dict(arrowstyle='-', facecolor=arrow_color,
+                        edgecolor=arrow_color, alpha=.5*thickness,
+                    #    patchA=mpatches.Circle((xx[i], yy[i]), circ_size), shrinkA=23,
+                    #patchB=mpatches.Circle((xx[j], yy[j]), circ_size), shrinkB=27,
+                    connectionstyle=curve_type, linewidth = thickness))#2*abs(M[i][j])))
+
+
+    edge = (1+circ_size)*1.2
+    ax.set_aspect('equal')
+    plt.axis([-edge, edge, -edge, edge])
+    plt.axis('off')
+    plt.tight_layout()
+    filename = 'figs/example_food_web_3.pdf'
+    plt.savefig(filename)
+    print('saved fig to {}'.format(filename))
+    return
 
     # add example point between two lines
     
@@ -493,216 +579,56 @@ def example_food_web(separatrices):
 
     plt.plot((p10*xx[2] + (1-p10)*xx[-4]), (p10*yy[2] + (1-p10)*yy[-4]), marker='.',
             color=cogg, markersize=20, zorder=5)   
-    edge = (1+circ_size)*1.02
-    plt.axis([-edge, edge, -edge, edge])
-    ax.set_aspect('equal')
-    plt.axis('off')
-    plt.tight_layout()
-#    filename = 'figs/example_food_web.pdf'
-#    plt.savefig(filename)
-#    print('saved fig to {}'.format(filename))
+
+
+###############################################################################
 
 
 ## MAIN FUNCTION
 
-
-
-
-
-param_list, ics = get_stein_parameters() 
+param_list, ics = get_stein_parameters()
 labels, mu, M, eps = param_list
-fps = get_all_steady_states(mu, M)
-fps = get_nonnegative_fixedpoints(fps)
-fp_list = []
-num_stable_fps = 0
 
-for fp in fps:
-    # make sure all fixed points are actually fixed points
-    output = integrand(fp, 0, mu, M)
-    assert(all(abs(output) < 1e-6))
-    
-    is_stable = get_stability(fp, mu, M, almost_stable=0, substability=False)
-    if is_stable:
-        verbose = False
-        if verbose:
-            if is_stable is True:
-                print('hello')
-#                print('{} is stable'.format(fp, is_stable))
-            else:
-                print('hello')
-#                print('{} is unstable in {} direction'.format(fp, is_stable))
-#            print()
-        num_stable_fps += 1
-        fp_list.append(fp)
-fp_list = np.array(fp_list)
-#print('there were {} stable fps out of {} total positive cases'.format(num_stable_fps, len(fps)))
+stable_fps = get_nonnegative_stable_fps(mu, M)
+unstable_2_fps = get_nonnegative_unstable_fps(mu, M, 2)
+stein_steady_states = get_stein_steady_states(unstable_2_fps)
+# note the order of stein_steady_states correponds to [A B C D E] of stein_dict
+stable_indices = []
+for stab_fp in stable_fps:
+    for i,stein_fp in enumerate(stein_steady_states):
+        if np.linalg.norm(stab_fp - stein_fp) < .001:
+            stable_indices.append(i)
+# the truly stable steady states are indices 0 and 2 (A and C)
 
-fp_list2 = []
-steady_state_2_list = []
-counter = 0
-for fp in fps:
-    # make sure all fixed points are actually fixed points
-    output = integrand(fp, 0, mu, M)
-    assert(all(abs(output) < 1e-6))
-    stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
-    if stein_stable:
-        verbose = False
-        if stein_stable is True:
-            steady_state_2_list = [fp] + steady_state_2_list
-            counter += 1
-            if verbose:
-                print('{} is stable'.format(fp,stein_stable))
-                print(counter)
-        else:
-            steady_state_2_list = [fp] + steady_state_2_list
-            counter += 1
-            if verbose:
-                print('the stein {} is unstable in {} direction'.format(fp, stein_stable))
-                print(counter)
-        num_stable_fps += 1
-        fp_list2.append(fp)
-fp_list2 = np.array(fp_list2)
-if False:
-    print('there were {} stein stable fps out of {} total cases'.format(num_stable_fps, len(fps)))
+sep_list_2D = {}
+sep_list_11D = {}
 
-test_call = bb.get_all_ss()
-stein_stable = get_stability(fp, mu, M, almost_stable=2, substability=False)
-
-stein_values = list(test_call.values())
-
-xa = fp_list[0]; xb = fp_list[1]
-sep_xa, sep_xb = get_separatrix_point(xa, xb,mu,M, 101)
-call = SSR(xa,xb,mu,M)
-
-#This returns Stein's steady states
-stein_steady_states = get_stein_steady_states(stein_values, steady_state_2_list)
-
-#returns all iterations of the possible combinations of Stein's Steady States
-
-sepp_list_11d = []
-sepp_list_2d = []
-alt_list_11d = []
-alt_list_2d = []
-twodsepp_list = []
-elevendsepp_list = []
-bisected_list_11d = []
-
-if True:
-
+read_data = True 
+if not read_data:
     combos = list(itertools.combinations(range(5), 2))
     for i,j in combos:
-            ssa = stein_steady_states[i]
-            ssb = stein_steady_states[j]
-            temp_separatrix_11D = get_separatrix_point(ssa, ssb,mu,M, num_points=101)
-            nu,L = SSR(ssa,ssb,mu,M)
-            temp_separatrix_2D = get_separatrix_point(np.array([1,0]), np.array([0,1]), nu, L, num_points=101)
-#            print(' for the 11-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_11D))
-#            print(' for the 2-D case the separatrix of ss{} and ss{} occurs at {}'.format(i, j, temp_separatrix_2D))
-            bisected_separatrix_11D = bisection(ssa, ssb, .0001, mu, M)
-#            print(' The bisection method for the 11-D case yields the separatrix of ss{} and ss{} occurs at {}'.format(i, j, bisected_separatrix_11D))
-            
+        print(i, j)
+        ssa_11 = stein_steady_states[i]
+        ssb_11 = stein_steady_states[j]
+        temp_separatrix_11D = bisection(ssa_11, ssb_11, .0001, mu, M)
 
-            
-            twodsepp_list = twodsepp_list + [temp_separatrix_2D]
-            elevendsepp_list = elevendsepp_list + [temp_separatrix_11D]
-            bisected_list_11d = bisected_list_11d + [bisected_separatrix_11D]
-            
-            
-for i in range(len(elevendsepp_list)):
-    elem2d = np.array(twodsepp_list[i]) 
-    elem2d = list(elem2d)
-    elem11d = np.array(elevendsepp_list[i])
-    elem11d = list(elem11d)
-    
+        nu, L = SSR(ssa_11, ssb_11, mu, M)
+        ssa_2 = np.array([1, 0])
+        ssb_2 = np.array([0, 1])
+        temp_separatrix_2D = bisection(ssa_2, ssb_2, .0001, nu, L)
 
-
-    if round(elem11d[0],2) == round(elem11d[1],2):
-        sepp_list_11d = [elem11d[0]] + sepp_list_11d
-        sepp_list_2d =   [elem2d[0]] + sepp_list_2d 
-    elif round(elem11d[0],2)  != round(elem11d[1],2) :
-        alt_list_11d  = [elem11d[0]] + [elem11d[1]] + alt_list_11d
-        alt_list_2d = [elem2d[0]] + [elem2d[1]] + alt_list_2d
-                    
-       
-#l = np.array([.84,.99])         
-#sepp_list11d = np.array(sepp_list11d)
-#sepp_list11d = list(sepp_list11d)
-
-
-
-weigsep_list = []
-weigalt_list = []
-weigsep_list2d = []
-weigalt_list = []
-weigalt_list2d = []
-
-for elem in sepp_list_11d:
-   
-    if elem > .9:
-        new_elem = .8
-        weigsep_list = weigsep_list + [new_elem]
-        
-   
-    elif elem <.1:
-        elem = .2
-        weigsep_list = weigsep_list + [elem]
-        
-   
-    else :
-        elem = elem
-        weigsep_list = weigsep_list + [elem]
-        
-for elem in sepp_list_2d:
-   
-    if elem > .9:
-        new_elem = .8
-        weigsep_list2d = weigsep_list2d + [new_elem]
-        
-   
-    elif elem <.1:
-        elem = .2
-        weigsep_list2d = weigsep_list2d + [elem]
-        
-   
-    else :
-        elem = elem
-        weigsep_list2d = weigsep_list2d + [elem]
-        
-
-for element in alt_list_11d:
-   
-    if element > .9:
-        element = .8
-        weigalt_list = weigalt_list + [element]
-        
-    elif element <.1:
-        element = .2
-        weigalt_list = weigalt_list + [element]
-   
-    else :
-        element = element
-        weigalt_list = weigalt_list + [element]
-        
-for element in alt_list_2d:
-   
-    if element > .9:
-        element = .8
-        weigalt_list2d = weigalt_list2d + [element]
-        
-    elif element <.1:
-        element = .2
-        weigalt_list2d = weigalt_list2d + [element]
-   
-    else :
-        element = element
-        weigalt_list2d = weigalt_list2d + [element]
-        
-        
+        sep_list_2D[(i, j)] = temp_separatrix_2D
+        sep_list_2D[(j, i)] = temp_separatrix_2D
+        sep_list_11D[(i, j)] = temp_separatrix_11D
+        sep_list_11D[(j, i)] = temp_separatrix_11D
+    with open('data/sep_lists', 'wb') as f:
+        pickle.dump((sep_list_2D, sep_list_11D), f)
+else:
+    with open('data/sep_lists', 'rb') as f:
+        sep_list_2D, sep_list_11D = pickle.load(f)
 
 if True:
-    example_food_web(weigsep_list)
-    import sys
-    sys.exit()
+    make_food_web(sep_list_2D, sep_list_11D)
 
 #If this block is designated as True then all of the pairs of Stein's steady states are found. Using the bisection method the separatrices are found
 # if the steady states that correspond to the sepatratrices have meaningful trajectories then the are subsequently passed as arguments in the function
