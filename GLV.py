@@ -21,6 +21,9 @@ def integrand(x, t, mu, M):
     """ Return N-dimensional gLV equations """
     dxdt = ( np.dot(np.diag(mu), x)
              + np.dot(np.diag(x), np.dot(M, x)) )
+    for i in range(len(x)):
+        if abs(x[i]) < 1e-8:
+            dxdt[i] = 0
     return dxdt
 
 
@@ -183,13 +186,13 @@ def get_steady_state(point, mu, M):
     simulations go until time=1000, but if the system doesn't converge in this
     time additional time is added to the simulation"""
     verbose = False 
-    t = np.linspace(0, 100000, 100001)
+    t = np.linspace(0, 10000, 10001)
     sol = odeint(integrand, point, t, args=(mu, M))
     while np.linalg.norm(sol[-1] - sol[-100]) > 1e-8:
         error = np.linalg.norm(sol[-1] - sol[-2])
         if verbose:
             print(t[-1], error)
-        t = np.linspace(t[-1], t[-1] + 100000, 100001)
+        t = np.linspace(t[-1], t[-1] + 10000, 10001)
         sol = odeint(integrand, sol[-1], t, args=(mu, M), Dfun=jacobian)
 
     if False:
@@ -252,7 +255,7 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
                 coexist_index = False
                 labels = ['A', 'B', 'C', 'D', 'E']
                 for i,stein_fp in enumerate(stein_fps):
-                    if np.linalg.norm(neither_val - stein_fp) < .001:
+                    if np.linalg.norm(neither_val - stein_fp) < .0001:
                         coexist_index = labels[i]
                 print('    instead {}D traj goes to steady state {}'.format(len(mu), coexist_index))
             return separatrix_xa, separatrix_xb
@@ -359,6 +362,26 @@ def get_relative_deviation(xa,xb,p):
     relative_deviation = deviation_from_plane/traj_length
     return relative_deviation
 
+# from Ian Hincks, https://stackoverflow.com/questions/37765197/darken-or-lighten-a-color-in-matplotlib
+def lighten_color(color, amount=0.5):
+    """
+    Lightens the given color by multiplying (1-luminosity) by the given amount.
+    Input can be matplotlib color string, hex string, or RGB tuple.
+    
+    Examples:
+    >> lighten_color('g', 0.3)
+    >> lighten_color('#F034A3', 0.6)
+    >> lighten_color((.3,.55,.1), 0.5)
+    """
+    import matplotlib.colors as mc
+    import colorsys
+    try:
+        c = mc.cnames[color]
+    except:
+        c = color
+    c = np.array(colorsys.rgb_to_hls(*mc.to_rgb(c)))
+    return colorsys.hls_to_rgb(c[0],1-amount * (1-c[1]),c[2])
+
 def make_food_web(sep_list_2D, sep_list_11D):
     """This function simulates a network of steady-states solutions and their sepatricies. """
     fig, ax = plt.subplots(figsize=(6,6))
@@ -384,45 +407,58 @@ def make_food_web(sep_list_2D, sep_list_11D):
         # here I append a "Circle" object, and say that its color is what I
         # saved earlier (in wheels)
         circs.append(plt.Circle((circ_xx[-1], circ_yy[-1]), circ_size, lw=0,
-                     color=wheels[i][0].get_color()))
+            color=wheels[i][0].get_color()))
         plt.text(circ_xx[-1], circ_yy[-1], labels[i], weight='bold', ha='center',
                 va='center', fontsize=28, color='black')
 
-    # plot all of the circles in ax
+        # plot all of the circles in ax
     for i in range(len(labels)):
         ax.add_artist(circs[i])
         True
 
-    # add lines connecting circles
-    for i in range(len(labels)):
-        for j in range(len(labels)):
-            if i == j:
-                continue
-            arrow_color = wheels[i][0].get_color()
-            p = sep_list_11D[(i,j)]
-            try:
-                if i < j:
-                    point = np.array([xx[i]*p + xx[j]*(1-p), yy[i]*p + yy[j]*(1-p)])
-                else:
-                    point = np.array([xx[j]*p + xx[i]*(1-p), yy[j]*p + yy[i]*(1-p)])
-            except TypeError:
-                print(i, j, p)
-                if i > j:
-                    point = np.array([xx[i]*p[0] + xx[j]*(1-p[0]), yy[i]*p[0] + yy[j]*(1-p[0])])
-                else:
-                    point = np.array([xx[i]*p[1] + xx[j]*(1-p[1]), yy[i]*p[1] + yy[j]*(1-p[1])])
-            print(point)
-            plt.plot(point[0], point[1], marker='.', color='k', markersize=9)
-            curve_type = 'arc3,rad=0'
-            thickness = 1.6
-            # make arrows pointing from one circle to another
-            ax.annotate("", xy=(xx[i],yy[i]), xytext=(point[0], point[1]),
-                    zorder=1,
-                    arrowprops = dict(arrowstyle='-', facecolor=arrow_color,
-                        edgecolor=arrow_color, alpha=.5*thickness,
-                    #    patchA=mpatches.Circle((xx[i], yy[i]), circ_size), shrinkA=23,
-                    #patchB=mpatches.Circle((xx[j], yy[j]), circ_size), shrinkB=27,
-                    connectionstyle=curve_type, linewidth = thickness))#2*abs(M[i][j])))
+    for dim,sep_list in zip(['2D', '11D'], [sep_list_2D, sep_list_11D]):
+        # add lines connecting circles
+        for i in range(len(labels)):
+            for j in range(len(labels)):
+                if i == j:
+                    continue
+                arrow_color = wheels[i][0].get_color()
+                p = sep_list[(i,j)]
+                try:
+                    point = np.array([xx[i]*(1-p) + xx[j]*p, yy[i]*(1-p) + yy[j]*p])
+                except TypeError:
+                    #print(i, j, p)
+                    if i < j:
+                        point = np.array([xx[i]*(1-p[0]) + xx[j]*p[0], yy[i]*(1-p[0]) + yy[j]*p[0]])
+                    else:
+                        point = np.array([xx[i]*(1-p[1]) + xx[j]*p[1], yy[i]*(1-p[1]) + yy[j]*p[1]])
+                #print(point)
+                if dim == '11D':
+                    plt.plot(point[0], point[1], marker='.', color='black',
+                            markersize=20, zorder=5,
+                            markerfacecolor='none')
+                if dim == '2D':
+                    plt.plot(point[0], point[1], marker='s', color='black',
+                            markersize=9, zorder=5, markerfacecolor='none')
+                curve_type = 'arc3,rad=0'
+                if dim == '11D':
+                    thickness = 6
+                    if i == 0 or i == 2:
+                        zorder = 2
+                    else:
+                        zorder = 1
+                    outer_color = arrow_color
+                if dim == '2D':
+                    thickness = 2
+                    if i == 0 or i == 2:
+                        zorder = 4
+                    else:
+                        zorder = 3
+                    outer_color = lighten_color(arrow_color, 1.4)
+                # make arrows pointing from one circle to another
+                ax.plot([xx[i],point[0]], [yy[i], point[1]],
+                        color=outer_color, linewidth=thickness, zorder=zorder,
+                        solid_capstyle='butt')
 
 
     edge = (1+circ_size)*1.2
@@ -430,155 +466,10 @@ def make_food_web(sep_list_2D, sep_list_11D):
     plt.axis([-edge, edge, -edge, edge])
     plt.axis('off')
     plt.tight_layout()
-    filename = 'figs/example_food_web_3.pdf'
+    filename = 'figs/example_food_web_4.pdf'
     plt.savefig(filename)
     print('saved fig to {}'.format(filename))
     return
-
-    # add example point between two lines
-    
-    if  weigsep_list[0] < .5:
-        cgr = 'g'
-    else :
-        cgr = 'tab:red'
-    
-    if  weigsep_list[1] < .5:
-        cgb = 'g'
-    else :
-        cgb = 'tab:blue'   
-        
-    if  weigsep_list[2] < .5:
-        cro = 'tab:red'
-    else :
-        cro = 'tab:orange'       
-    if weigsep_list[3] < .5:
-        cpg = 'tab:purple'
-    else :
-        cpg = 'g'
-    if weigsep_list[4] < .5:
-        cpo = 'tab:orange'
-    else :
-        cpo = 'tab:purple'
-    if weigsep_list[5] < .5:
-        cbr = 'tab:blue'
-    else :
-        cbr = 'tab:red'
-    if weigsep_list[6] < .5:
-        cbp = 'tab:blue'
-    else :
-        cbp = 'tab:purple'
-    if weigsep_list[7] < .5:
-        cbo = 'tab:orange'
-    else :
-        cbo = 'tab:blue'
-    if weigalt_list[0] < .5:
-        cpr = 'tab:purple'
-    else :
-        cpr = 'tab:red'
-    if weigalt_list[2]< .5:
-        cog = 'tab:orange'
-    else :
-        cog = 'tab:green'
-    if weigalt_list[3]< .5:
-        cogg = 'tab:orange'
-    else :
-        cogg = 'tab:green'
-#    
-#    
-    
-#    1.) blue to red    
-    p0 = weigsep_list[0]
-    p0star = weigsep_list2d[0]
-    
-    plt.plot( (p0*xx[-2] + (1-p0)*xx[-3]), (p0*yy[-2] + (1-p0)*yy[-3]), marker='.',
-            color= cgr, markersize=20, zorder=5)
-
-    plt.plot( (p0star*xx[-2] + (1-p0star)*xx[-3]), (p0star*yy[-2] + (1-p0star)*yy[-3]), marker='+',
-            color= cgr, markersize=20, zorder=5)    
-    
-    p1 = weigsep_list[1]
-    p1star = weigsep_list2d[1]
-     #2.) blue to green (p0*xx[0] + (1-p0)*xx[2]), (p0*yy[0] + (1-p0)*yy[2])
-    plt.plot( (p1*xx[0] + (1-p1)*xx[2]), (p1*yy[0] + (1-p1)*yy[2]), marker='.',
-            color= cgb, markersize=20, zorder=5)
-    plt.plot( (p1star*xx[0] + (1-p1star)*xx[2]), (p1star*yy[0] + (1-p1star)*yy[2]), marker='+',
-            color= cgb, markersize=20, zorder=5)    
-   
-    #3.) orange to red (p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3])
-    p2 = weigsep_list[2]
-    p2star = weigsep_list2d[2]
-    plt.plot((p2*xx[1] + (1-p2)*xx[3]), (p2*yy[1] + (1-p2)*yy[3]), marker='.',
-            color=cro, markersize=20, zorder=5)
-    plt.plot((p2star*xx[1] + (1-p2star)*xx[3]), (p2star*yy[1] + (1-p2star)*yy[3]), marker='+',
-            color=cro, markersize=20, zorder=5)
-    
-    #4.) purple to green(p3*xx[2] + (1-p3)*xx[4]), (p4*yy[2] + (1-p3)*yy[4])
-    p3 = weigsep_list[3]
-    p3star = weigsep_list2d[3]
-    plt.plot((p3*xx[2] + (1-p3)*xx[4]), (p3*yy[2] + (1-p3)*yy[4]), marker='.',
-            color=cpg , markersize=20, zorder=5)
-    plt.plot((p3star*xx[2] + (1-p3star)*xx[4]), (p3star*yy[2] + (1-p3star)*yy[4]), marker='+',
-            color=cpg , markersize=20, zorder=5)
-    
-#    5.) purple to orange (p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1])
-    p4 = weigsep_list[4]
-    p4star = weigsep_list2d[4]
-    plt.plot((p4*xx[-1] + (1-p4)*xx[1]), (p4*yy[-1] + (1-p4)*yy[1]), marker='.',
-            color=cpo, markersize=20, zorder=5)
-    plt.plot((p4star*xx[-1] + (1-p4star)*xx[1]), (p4star*yy[-1] + (1-p4star)*yy[1]), marker='+',
-            color=cpo, markersize=20, zorder=5)
-    #blue to red(p5*xx[-2] + (1-p5)*xx[0]), (p5*yy[-2] + (1-p5)*yy[0])
-    p5 = weigsep_list[5]
-    p5star = weigsep_list2d[5]
-    
-    plt.plot((p5*xx[-2] + (1-p5)*xx[0]), (p5*yy[-2] + (1-p5)*yy[0]), marker='.',
-            color=cbr, markersize=20, zorder=5)
-    plt.plot((p5star*xx[-2] + (1-p5star)*xx[0]), (p5star*yy[-2] + (1-p5star)*yy[0]), marker='+',
-            color=cbr, markersize=20, zorder=5)
-    #blue to purple (p6*xx[-1] + (1-p6)*xx[0]), (p6*yy[-1] + (1-p6)*yy[0])
-    p6 = weigsep_list[6]
-    p6star = weigsep_list2d[6]
-    plt.plot((p6star*xx[-1] + (1-p6star)*xx[0]), (p6star*yy[-1] + (1-p6star)*yy[0]), marker='+',
-            color=cbp, markersize=20, zorder=5)
-    plt.plot((p6*xx[-1] + (1-p6)*xx[0]), (p6*yy[-1] + (1-p6)*yy[0]), marker='.',
-            color=cbp, markersize=20, zorder=5)
-    # blue to orange (p7*xx[0] + (1-p7)*xx[1]), (p7*yy[0] + (1-p7)*yy[1])
-    p7 = weigsep_list[7]
-    p7star = weigsep_list2d[7]
-    plt.plot((p7*xx[0] + (1-p7)*xx[1]), (p7*yy[0] + (1-p7)*yy[1]), marker='.',
-            color=cbo, markersize=20, zorder=5)
-    plt.plot((p7star*xx[0] + (1-p7star)*xx[1]), (p7star*yy[0] + (1-p7star)*yy[1]), marker='+',
-            color=cbo, markersize=20, zorder=5)
-
-    
-    #purple to red (p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4])
-    p8 = weigalt_list[0]
-    p8star = weigalt_list2d[0]
-    plt.plot((p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4]), marker='.',
-            color=cpr, markersize=20, zorder=5)
-    plt.plot((p8star*xx[-2] + (1-p8star)*xx[4]), (p8star*yy[-2] + (1-p8star)*yy[4]), marker='+',
-            color=cpr, markersize=20, zorder=5)
-    p8 = weigalt_list[1]*.9
-    p8star = weigalt_list2d[1] 
-    plt.plot((p8*xx[-2] + (1-p8)*xx[4]), (p8*yy[-2] + (1-p8)*yy[4]), marker='.',
-            color=cpr, markersize=20, zorder=5)
-    plt.plot((p8star*xx[-2] + (1-p8star)*xx[4]), (p8star*yy[-2] + (1-p8star)*yy[4]), marker='+',
-            color=cpr, markersize=20, zorder=5)
-  
-#    #orange to green (p9*xx[2] + (1-p9)*xx[-4]), (p9*yy[2] + (1-p9)*yy[-4])
-    p9 = weigalt_list[2]
-    p9star = weigalt_list[2]
-    plt.plot((p9star*xx[2] + (1-p9star)*xx[-4]), (p9star*yy[2] + (1-p9star)*yy[-4]), marker='+',
-            color=cog, markersize=20, zorder=5)
-    plt.plot((p9*xx[2] + (1-p9)*xx[-4]), (p9*yy[2] + (1-p9)*yy[-4]), marker='.',
-            color=cog, markersize=20, zorder=5)
-    p10 = weigalt_list[3]
-    p10star = weigalt_list[3]
-    plt.plot((p10star*xx[2] + (1-p10star)*xx[-4]), (p10star*yy[2] + (1-p10star)*yy[-4]), marker='+',
-            color=cogg, markersize=20, zorder=5)
-
-    plt.plot((p10*xx[2] + (1-p10)*xx[-4]), (p10*yy[2] + (1-p10)*yy[-4]), marker='.',
-            color=cogg, markersize=20, zorder=5)   
 
 
 ###############################################################################
@@ -593,11 +484,6 @@ stable_fps = get_nonnegative_stable_fps(mu, M)
 unstable_2_fps = get_nonnegative_unstable_fps(mu, M, 2)
 stein_steady_states = get_stein_steady_states(unstable_2_fps)
 # note the order of stein_steady_states correponds to [A B C D E] of stein_dict
-print(get_nonnegative_unstable_fps(mu, M, 1))
-print()
-print(stein_steady_states)
-import sys
-sys.exit()
 stable_indices = []
 for stab_fp in stable_fps:
     for i,stein_fp in enumerate(stein_steady_states):
@@ -608,11 +494,12 @@ for stab_fp in stable_fps:
 sep_list_2D = {}
 sep_list_11D = {}
 
+labels = ['A', 'B', 'C', 'D', 'E']
 read_data = True 
 if not read_data:
     combos = list(itertools.combinations(range(5), 2))
     for i,j in combos:
-        print(i, j)
+        print(labels[i], labels[j])
         ssa_11 = stein_steady_states[i]
         ssb_11 = stein_steady_states[j]
         temp_separatrix_11D = bisection(ssa_11, ssb_11, .0001, mu, M)
@@ -623,14 +510,34 @@ if not read_data:
         temp_separatrix_2D = bisection(ssa_2, ssb_2, .0001, nu, L)
 
         sep_list_2D[(i, j)] = temp_separatrix_2D
-        sep_list_2D[(j, i)] = temp_separatrix_2D
         sep_list_11D[(i, j)] = temp_separatrix_11D
-        sep_list_11D[(j, i)] = temp_separatrix_11D
+        try:
+            sep_list_2D[(j, i)] = 1 - temp_separatrix_2D
+        except TypeError:
+            sep_list_2D[(j, i)] = tuple(1 - val for val in temp_separatrix_2D)
+        try:
+            sep_list_11D[(j, i)] = 1 - temp_separatrix_11D
+        except TypeError:
+            sep_list_11D[(j, i)] = tuple(1 - val for val in temp_separatrix_11D)
     with open('data/sep_lists', 'wb') as f:
         pickle.dump((sep_list_2D, sep_list_11D), f)
 else:
     with open('data/sep_lists', 'rb') as f:
         sep_list_2D, sep_list_11D = pickle.load(f)
+        verbose = True
+        labels = ['A', 'B', 'C', 'D', 'E']
+        if verbose:
+            for i in range(5):
+                for j in range(5):
+                    if i < j:
+                        print(labels[i], labels[j])
+                        for N, sep_list in zip([2, 11], [sep_list_2D, sep_list_11D]):
+                            p = sep_list[(i, j)]
+                            if isinstance(p, float):
+                                print('    {}D separatrix at p={}'.format(N, p))
+                            else:
+
+                                print('    {}D separatrices at p={} and p={}'.format(N, p[0], p[1]))
 
 if True:
     make_food_web(sep_list_2D, sep_list_11D)
