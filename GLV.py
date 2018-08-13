@@ -593,6 +593,11 @@ stable_fps = get_nonnegative_stable_fps(mu, M)
 unstable_2_fps = get_nonnegative_unstable_fps(mu, M, 2)
 stein_steady_states = get_stein_steady_states(unstable_2_fps)
 # note the order of stein_steady_states correponds to [A B C D E] of stein_dict
+print(get_nonnegative_unstable_fps(mu, M, 1))
+print()
+print(stein_steady_states)
+import sys
+sys.exit()
 stable_indices = []
 for stab_fp in stable_fps:
     for i,stein_fp in enumerate(stein_steady_states):

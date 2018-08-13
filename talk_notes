@@ -1,0 +1,19 @@
++ "uhh"
++ what is the microbiome?
++ make need for microbial models clear (before slide 2)
++ emphasize: we can use microbial models to design medicine
++ add context: fecal microbiota transplantaion or bacteriotherapy
++ models come from ecology. microbiome = fast ecology.
++ work on explanation of steady state reduction. "compression of a complex
+model into a simplified and mathematically accessible model"
++ mention the mouse system; these models are fit with experimental mouse data
+
++ more about microbiome as an organ -> needs medicine -> bacteriotherapy
++ microbes not consious
++ didn't explain what bacteriotherapy is
++ "it" can be computationally expensive
++ "trajectory" is a microbial population over time, ignore going to infinity
++ N-dimensional is "true" and 2-dimensional is "approximate" or "compressed"
++ in 2D we can use mathematics, not simulation
++ motivate steady states as "types of bacterial compositions"
+
