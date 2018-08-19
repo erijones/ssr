@@ -13,6 +13,7 @@
 
 import numpy as np
 import scipy.integrate as integrate
+import math
 np.set_printoptions(suppress=True, precision=5)
 
 # import data from Stein paper for parameters and initial conditions
@@ -48,7 +49,6 @@ def parse_data(var_data):
     eps[c_diff_index], eps[-1]       = eps[-1], eps[c_diff_index]
     labels[c_diff_index], labels[-1] = labels[-1], labels[c_diff_index]
     c_diff_index                     = labels.index("Clostridium difficile")
-
     return labels, mu, M, eps
 
 # extract messy (i.e. string) ICs, cast as floats, and then numpy arrays
@@ -141,3 +141,79 @@ def get_all_ss():
 
     return ss_list
 
+def get_stein_params():
+    var_data, ic_data = import_data()
+    labels, mu, M, eps = parse_data(var_data)
+    return labels, mu, M, eps
+
+def SSR(xa, xb, mu, M):
+    """This function performs steady state reduction by taking in the relevant
+    parameters, then performing the relevant operations, and finally returning
+    the steady state reduced forms of the parameters nu and L """
+
+    nu = np.array([np.dot(xa, mu),
+                  np.dot(xb, mu)])
+
+    L = np.array([[np.dot(xa.T,np.dot(M,xa)), np.dot(xa.T,np.dot(M,xb))],
+                 [np.dot(xb.T,np.dot(M,xa)), np.dot(xb.T,np.dot(M,xb))]])
+    return nu, L
+
+class Params:
+    def __init__(s, params=None):
+        if params:
+            s.M, s.eps, s.mu = params
+
+    def get_11_ss(s, t=0):
+        xa = - ((-s.M[1][1]*s.mu[0] + s.M[0][1]*s.mu[1]) /
+                (s.M[0][1]*s.M[1][0] - s.M[0][0]*s.M[1][1]))
+        xb = - ((s.M[1][0]*s.mu[0] - s.M[0][0]*s.mu[1]) /
+                (s.M[0][1]*s.M[1][0] - s.M[0][0]*s.M[1][1]))
+        return [xa, xb]
+
+    def get_taylor_coeffs(s, order, dir_choice = 1):
+        """ Return Taylor coefficients for unstable or stable manifolds of the
+        semistable coexisting fixed point (u^*, v^*). dir_choice = 0 returns the
+        stable manifold coefficients, dir_choice = 1 returns the unstable
+        manifold coefficients """
+        u, v = s.get_11_ss()
+        coeffs = np.zeros(order)
+        for i in range(order):
+            if i == 0:
+                coeffs[i] = v
+                continue
+            if i == 1:
+                a = s.M[0][1]*u
+                b = s.M[0][0]*u - s.M[1][1]*v
+                c = -s.M[1][0]*v
+                if dir_choice == 0:
+                    lin_val = (-b + np.sqrt(b**2 - 4*a*c))/(2*a)
+                else:
+                    lin_val = (-b - np.sqrt(b**2 - 4*a*c))/(2*a)
+                coeffs[i] = lin_val
+                continue
+            if i == 2:
+                # Eq 20 of supplement. In my terms:
+                # c_m/m! * alpha = c_m-1/(m-1)! * beta
+                alpha = i*u*s.M[0][0] + (i+1)*u*s.M[0][1]*coeffs[1] - s.M[1][1]*v
+                beta = ( s.M[1][0] + s.M[1][1]*coeffs[1] - (i-1)*s.M[0][0] -
+                         (i-1)*s.M[0][1]*coeffs[1] )
+                i_coeff = ( math.factorial(i) *
+                            (coeffs[i-1]/math.factorial(i-1)*beta) ) / alpha
+                coeffs[i] = i_coeff
+                continue
+            # Eq 20 of supplement. In my terms:
+            # c_m/m! * alpha = c_m-1/(m-1)! * beta + sum_i=2^m-1 gamma[i]
+            #alpha = i*u*p.M[0][0] + (i+1)*u*p.M[0][1]*coeffs[1]
+            alpha = i*u*s.M[0][0] + (i+1)*u*s.M[0][1]*coeffs[1] - s.M[1][1]*v
+            beta = ( s.M[1][0] + s.M[1][1]*coeffs[1] - (i-1)*s.M[0][0] -
+                     (i-1)*s.M[0][1]*coeffs[1] )
+            gamma = np.sum([ (coeffs[j]/(math.factorial(j) * math.factorial(i - j))
+                              * (s.M[1][1]*coeffs[i-j]
+                                 - (i-j)*s.M[0][1]*coeffs[i-j]
+                                 - u*s.M[0][1]*coeffs[i-j+1]))
+                            for j in range(2, i)])
+            #print(alpha, beta, gamma)
+            i_coeff = ( i / alpha * coeffs[i-1]*beta
+                        + math.factorial(i) / alpha * gamma)
+            coeffs[i] = i_coeff
+        return coeffs

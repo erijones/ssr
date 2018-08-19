@@ -264,8 +264,9 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
 
 
 def SSR(xa,xb,mu,M):
-    """This function performs a steady state reduction by taking in the relevant parameters, then performing the relevant operations,
-     and finally returning the steady state reduced forms of the parameters "nu" and "L" """
+    """This function performs a steady state reduction by taking in the
+    relevant parameters, then performing the relevant operations, and finally
+    returning the steady state reduced forms of the parameters "nu" and "L" """
 
     nu = np.array([np.dot(xa, mu),
                   np.dot(xb, mu)])
