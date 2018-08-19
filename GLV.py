@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Sun Aug 19 15:46:33 2018
+
+@author: parkershankin-clarke
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Sun Jun 10 19:10:43 2018
 @author: parkershankin-clarke
 """
@@ -539,6 +547,75 @@ else:
                             else:
 
                                 print('    {}D separatrices at p={} and p={}'.format(N, p[0], p[1]))
+                                
+  
+        ##The lines of code in under the following "if True" statement  : 
+        #1.) Collect the permuations of the 11D and 2D separatricies and put them into an two seperate arrays that are subsequently be resized as two nxn matricies. 
+        # If separatrices disagree then the corresponding element is entered as a none-type.
+        #2.)Instead of collecting the separatrix p, the 11D and 2D norms (i.e. p*norm(ssb-ssa)) are collected as two seperate arrays that subsequently resized as two nxn matricies. 
+if True: 
+    
+    #arrays intialized for part1.) (look above for more information)
+    sep_matrix_11D = np.array([])
+    sep_matrix_2D = np.array([])
+    
+    #arrays intialized for part2.) (look above for more information)
+    norm_matrix_2D = np.array([])
+    norm_matrix_11D = np.array([])
+    
+    #The number of steady states in the system
+    numss = 5
+    
+    #11-D 
+    if True:
+        for i in range(numss):
+            for j in range(numss):
+                if i != j:
+                    for N, sep_list in zip([2, 11], [sep_list_11D]):
+                        p = sep_list[(i, j)]
+                        ssa = stein_steady_states[i]
+                        ssb = stein_steady_states[j]
+                        if isinstance(p, float):
+                            sep_matrix_11D = np.append(sep_matrix_11D, p)
+                            norm = p * np.linalg.norm(ssb - ssa)
+                            norm_matrix_11D = np.append(norm_matrix_11D,norm)
+                        else:
+                            sep_matrix_11D = np.append(sep_matrix_11D, None)
+                            norm_matrix_11D = np.append(sep_matrix_11D,None)
+                elif i == j:
+                     p=0
+                     sep_matrix_11D = np.append(sep_matrix_11D,p)
+                     norm_matrix_11D = np.append(norm_matrix_11D,p)
+    #2-D        
+    if True:
+        for i in range(numss):
+            for j in range(numss):
+                if i != j:
+                    for N, sep_list in zip([2, 11], [sep_list_2D]):
+                        p = sep_list[(i, j)]
+                        if isinstance(p, float):
+                            sep_matrix_2D = np.append(sep_matrix_2D, p)
+                            norm = p * np.linalg.norm(np.array([0,1]) - np.array([1,0]))
+                            norm_matrix_2D = np.append(norm_matrix_2D,norm)   
+                        else:
+                            sep_matrix_2D = np.append(sep_matrix_2D, None)
+                            norm_matrix_2D = np.append(norm_matrix_2D,None)
+                elif i == j:
+                    p=0
+                    sep_matrix_2D = np.append(sep_matrix_2D,p)
+                    norm_matrix_2D = np.append(norm_matrix_2D,p)
+    
+    ##reformat both arrays into  numss x numss matricies:
+    
+    #arrays for part1.) (look above for more information)                  
+    sep_matrix_2D = np.resize(sep_matrix_2D,(5,5))
+    sep_matrix_11D = np.resize(sep_matrix_11D,(5,5))
+    
+    #arrays for part2.) (look above for more information)  
+    norm_matrix_2D = np.resize(norm_matrix_2D,(5,5))
+    norm_matrix_11D = np.resize(norm_matrix_11D,(5,5))
+
+
 
 if True:
     make_food_web(sep_list_2D, sep_list_11D)
@@ -563,5 +640,4 @@ if False:
             print('--------')
         else:
             print(pstar)
-            print('--')
-
+print('--')
