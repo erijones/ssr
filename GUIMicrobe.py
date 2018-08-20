@@ -12,6 +12,13 @@ import tkinter as tk
 from tkinter.filedialog import askopenfilename
 from PIL import *
 
+root = tk.Tk()
+
+topFrame = Frame(root)
+topFrame.pack()
+bottomFrame = Frame(root)
+bottomFrame.pack(side=BOTTOM)
+
 
 def getfile():
     """ This function when called opens a file """
@@ -19,7 +26,7 @@ def getfile():
     print(filename)
     
 def displayimage():
-    """ This function when called displays an image"""
+    """ This function when called displays an image named 'Figure.png' """
     #https://stackoverflow.com/questions/15999661/image-in-tkinter-window-by-clicking-on-button
     novi = Toplevel()
     canvas = Canvas(novi, width = 300, height = 200)
@@ -30,11 +37,11 @@ def displayimage():
     #assigned the gif1 to the canvas object
     canvas.gif1 = gif1
 
-root = tk.Tk()
 
 
-button1 = tk.Button(root,text ='Display attractor network',command = displayimage, height=5, width=20) 
-button = tk.Button(root, text="Choose file", command=getfile)
+
+button1 = tk.Button(bottomFrame,text ='Display attractor network',command = displayimage, height=5, width=20) 
+button = tk.Button(topFrame, text="Choose file", command=getfile)
 
 button.pack()
 button1.pack()
