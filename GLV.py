@@ -24,6 +24,7 @@ import pickle
 
 import warnings
 warnings.filterwarnings("ignore")
+import operator
 
 def integrand(x, t, mu, M):
     """ Return N-dimensional gLV equations """
@@ -480,6 +481,127 @@ def make_food_web(sep_list_2D, sep_list_11D):
     print('saved fig to {}'.format(filename))
     return
 
+paths = []
+single_list = []
+
+def generate_paths(SE_point,steadystate):
+    """This function generates all possible paths from a given start point to a given end point """
+    selectpathlist = []
+    #generate all possible permuations
+    for i in range(2,5):
+        p = list(itertools.permutations(steadystate, i))
+        for elem in p:
+            #take only the permuations that lead from the start point to the end point
+            if elem[0] == SE_point[0] and elem[len(elem)-1] == SE_point[1]:
+                selectpathlist = selectpathlist + [elem]
+    return selectpathlist
+            
+def conv(allpaths):
+    """ this function will take all paths from a given start point to a given endpoint and convert them from 
+    letters to numbers"""
+    allpathslist = []
+    #this dictionary will be used to convert each path in allpaths from letters to their corresponding numbers
+    #credit: https://stackoverflow.com/questions/17295776/how-to-replace-elements-in-a-list-using-dictionary-lookup
+    values = ('A', 'B', 'C', 'D','E')
+    keys = (0,1,2,3,4)
+    convdict = dict(zip(keys,values))
+    for path in allpaths:
+        #replace an element in a list using a dictionary lookup
+        rev_subs = { v:k for k,v in convdict.items()}  
+        p = [rev_subs.get(item,item)  for item in path]
+        allpathslist = allpathslist + [p] 
+    return allpathslist
+#
+def red_sum(allpaths,separtrix_matrix):
+    """ This function reduces all 1 by n paths to 1 by 2 paths and sums their corresponding separatrix values 
+    in order to find the total path length"""
+    sep = separtrix_matrix
+    sepa = 0
+    sum_list = []
+
+    for paths in allpaths:
+
+        #This block of code would be utilized if there were less than or equal to two steady states
+        if len(paths) == 1:
+            print('path==1')
+            for path in paths:
+                # 1 by 2 paths
+                if len(path) == 2:
+                    row = path[0]
+                    column = path[1]
+                    separatrix = sep[row,column]
+                    sum_list += [separatrix]
+                #1 by n paths    
+                if len(path) > 2:
+                    path_list = []
+                    for i in range(0,len(path)-1):           
+                        path_list = [path[i],path[i+1]]  + path_list
+                        chunksumm = [path_list[x:x+2] for x in range(0, len(path_list), 2)]
+                    single_list = [] 
+                    for chunk in chunksumm:
+                        row = chunk[0]
+                        column = chunk[1]
+                        separatrix = sep[row,column]
+                        single_list =  single_list + [separatrix]
+                        if all(isinstance(n, float) for n in single_list):
+                            #credit : https://stackoverflow.com/questions/8964191/test-type-of-elements-python-tuple-list
+                            print('ggg')
+                            sepa = sum(single_list)
+    
+                        else:
+                            print('hhhh')
+                            sepa = None
+    
+              
+                    sum_list += [[sepa]]
+
+            
+        #This block of code would be utilized if there were greater than or equal to two steady states
+        else:
+
+            for path in paths:
+                if len(path) == 2:
+                    row = path[0]
+                    column = path[1]
+                    separatrix = sep[row,column]
+                    sum_list = sum_list + [separatrix]
+                if len(path) > 2:
+                    path_list = []
+                    for i in range(0,len(path)-1):           
+                        path_list = [path[i],path[i+1]]  + path_list
+                        #credit: https://stackoverflow.com/questions/4501636/creating-sublists
+                        chunksumm = [path_list[x:x+2] for x in range(0, len(path_list), 2)]
+                    single_list = [] 
+                    for chunk in chunksumm:
+                        row = chunk[0]
+                        column = chunk[1]
+                        separatrix = sep[row,column]
+                        single_list =  [separatrix]  + single_list 
+                        if all(isinstance(n, float) for n in single_list):
+                            sepsum = sum(single_list)
+                        else:
+                            sepsum = None
+                    sum_list =  sum_list + [sepsum]
+                    
+        cchunksumm = [sum_list[x:x+len(paths)] for x in range(0, len(sum_list), len(paths))]
+    return cchunksumm
+
+
+def dictionary(paths,labels):
+    """This function returns a dictionary of paths and pathlength """
+    #credit: ##https://stackoverflow.com/questions/209840/convert-two-lists-into-a-dictionary-in-python
+    keys = labels
+    values = paths
+    dictionary  = dict(zip(keys,values))
+    return dictionary
+
+def delandsort(mydict):
+    """This function returns a sorted dictionary with the None data type excluded from the dictionary """
+    ##credit : https://stackoverflow.com/questions/15158599/removing-entries-from-a-dictionary-based-on-values
+    ##credit: http://thomas-cokelaer.info/blog/2017/12/how-to-sort-a-dictionary-by-values-in-python/
+    mydict = { k:v for k, v in mydict.items() if v }
+    sorted_d = sorted(mydict.items(), key=operator.itemgetter(1))
+    return sorted_d
 
 ###############################################################################
 
@@ -579,9 +701,10 @@ if True:
                             sep_matrix_11D = np.append(sep_matrix_11D, p)
                             norm = p * np.linalg.norm(ssb - ssa)
                             norm_matrix_11D = np.append(norm_matrix_11D,norm)
+                            
                         else:
                             sep_matrix_11D = np.append(sep_matrix_11D, None)
-                            norm_matrix_11D = np.append(sep_matrix_11D,None)
+                            norm_matrix_11D = np.append(norm_matrix_11D,None)
                 elif i == j:
                      p=0
                      sep_matrix_11D = np.append(sep_matrix_11D,p)
@@ -614,6 +737,7 @@ if True:
     #arrays for part2.) (look above for more information)  
     norm_matrix_2D = np.resize(norm_matrix_2D,(5,5))
     norm_matrix_11D = np.resize(norm_matrix_11D,(5,5))
+    sepa = sep_matrix_11D
 
 
 
@@ -627,6 +751,7 @@ if False:
     combos = list(itertools.combinations(range(5), 2))
     for i,j in combos:
         ssa = stein_steady_states[i]
+        print(ssa)
         ssb = stein_steady_states[j]
         pstar = bisection(ssa,ssb,.0001,mu,M)
         if isinstance(pstar, float):
@@ -641,3 +766,39 @@ if False:
         else:
             print(pstar)
 print('--')
+
+
+if True:
+    steady_states = 'ABCDE'
+    pathss = []
+    convpaths = []
+    ##Produces a list of tuples each of which provides a start and end point for a path
+    enteries = list(itertools.permutations(steady_states,2))
+    
+    ##This block of code feeds in all tuple startpoints and endpoints into the fucntion "generate_paths"
+    #paths a list of paths for entry 
+    for entry in enteries:
+        path = generate_paths(entry,steady_states)
+        pathss =   pathss + [path] 
+    
+    #This block of code feeds in all paths and collected the converted paths into a list
+    for path in pathss:
+        convpath = conv(path)
+        convpaths = [convpath] + convpaths
+    
+    #reverse convpaths in order to match the labels in pathss
+    revconpaths = list(reversed(convpaths))
+    #reduce and sum in order to find path lengths 
+    pathlengths = red_sum(revconpaths,sep_matrix_11D)
+    
+    #put pathlengths in dictionary and sort them
+    for i in range(len(pathss)):
+       pathdict = dictionary(pathlengths[i],pathss[i])
+       sortedict = delandsort(pathdict)
+       print(pathdict)
+       print('-------------------')
+       print(sortedict)
+       print('-   -    -   -   -    -')
+
+
+
