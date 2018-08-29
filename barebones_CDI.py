@@ -1,6 +1,6 @@
 #!/bin/python
 #
-# Version 0.1 
+# Version 0.2 
 # This file contains the barebones functions required to generate figures that
 # do not involve sporulation or mutation for the paper 'In silico analysis of
 # C. difficile infection: remediation techniques and biological adaptations' by
@@ -168,7 +168,31 @@ class Params:
                 (s.M[0][1]*s.M[1][0] - s.M[0][0]*s.M[1][1]))
         xb = - ((s.M[1][0]*s.mu[0] - s.M[0][0]*s.mu[1]) /
                 (s.M[0][1]*s.M[1][0] - s.M[0][0]*s.M[1][1]))
-        return [xa, xb]
+        return np.array([xa, xb])
+
+    def get_10_ss(s, t=0):
+        xa = -s.mu[0]/s.M[0][0]
+        xb = 0
+        return np.array([xa, xb])
+
+    def get_01_ss(s, t=0):
+        xa = 0
+        xb = -s.mu[0]/s.M[0][0]
+        return np.array([xa, xb])
+
+    def get_jacobian(s, x, t=0):
+        """ Return jacobian of N-dimensional gLV equation at steady state x """
+        N = len(x)
+        jac = np.zeros((N, N))
+        for i in range(N):
+            for j in range(N):
+                if i is j:
+                    val = s.mu[i] + np.dot(s.M, x)[i] + s.M[i,i]*x[i]
+                    jac[i, j] = val
+                else:
+                    val = x[i]*s.M[i,j]
+                    jac[i, j] = val
+        return jac
 
     def get_taylor_coeffs(s, order, dir_choice = 1):
         """ Return Taylor coefficients for unstable or stable manifolds of the
@@ -217,3 +241,17 @@ class Params:
                         + math.factorial(i) / alpha * gamma)
             coeffs[i] = i_coeff
         return coeffs
+
+def project_to_2D(traj, ssa, ssb):
+    """Projects a high-dimensional trajectory traj into a 2D system, defined by
+    the origin and steady states ssa and ssb, and returns a 2-dimensional
+    trajectory"""
+    new_traj = []
+    for elem in traj:
+        uu = np.dot(ssa, ssa); vv = np.dot(ssb, ssb)
+        xu = np.dot(elem, ssa); xv = np.dot(elem, ssb)
+        uv = np.dot(ssa, ssb)
+        new_traj.append([(xu*vv - xv*uv)/(uu*vv - uv**2),
+                         (uu*xv - xu*uv)/(uu*vv - uv**2)])
+    new_traj = np.array(new_traj)
+    return new_traj

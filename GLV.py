@@ -21,10 +21,11 @@ from scipy.integrate import ode
 from itertools import permutations
 import matplotlib.pyplot as plt
 import pickle
-
+import math
 import warnings
 warnings.filterwarnings("ignore")
 import operator
+import time
 
 def integrand(x, t, mu, M):
     """ Return N-dimensional gLV equations """
@@ -194,7 +195,7 @@ def get_steady_state(point, mu, M):
     initial condition point until the system reaches a steady state. Initially,
     simulations go until time=1000, but if the system doesn't converge in this
     time additional time is added to the simulation"""
-    verbose = False 
+    verbose = False
     t = np.linspace(0, 10000, 10001)
     sol = odeint(integrand, point, t, args=(mu, M))
     while np.linalg.norm(sol[-1] - sol[-100]) > 1e-8:
@@ -202,7 +203,7 @@ def get_steady_state(point, mu, M):
         if verbose:
             print(t[-1], error)
         t = np.linspace(t[-1], t[-1] + 10000, 10001)
-        sol = odeint(integrand, sol[-1], t, args=(mu, M), Dfun=jacobian)
+        sol = odeint(integrand, sol[-1], t, args=(mu, M))
 
     if False:
         t_max = t[-1]
@@ -325,6 +326,48 @@ def bisection(xa,xb,eps, mu, M):
             print('    {}D separatrix at p={}'.format(N, po))
 
     return po
+
+def get_analytic_separatrix(eps, mu, M):
+    """Use the analytically determined separatrix from barebones_CDI.py to
+    compute the separatrix point, rather than the computationally expensive
+    bisection method"""
+    p = bb.Params((M, None, mu))
+
+    xa_eigs = np.linalg.eig(p.get_jacobian(p.get_10_ss()))[0]
+    xb_eigs = np.linalg.eig(p.get_jacobian(p.get_01_ss()))[0]
+    mixed_ss_eigs = np.linalg.eig(p.get_jacobian(p.get_11_ss()))[0]
+    #print(xa_eigs)
+    #print(xb_eigs)
+    #print(mixed_ss_eigs)
+
+    zero = 1e-10
+    if any(xa_eigs > zero) and all(xb_eigs <= zero):
+        # xa is unstable => trajectory will go to xb
+        sep_point = 0
+    elif all(xa_eigs <= zero) and any(xb_eigs > zero):
+        # xb is unstable
+        sep_point = 1
+    elif all(mixed_ss_eigs < zero):
+        # mixed steady state is stable => not a bistable system
+        sep_point = (0, 1)
+    else:
+        # standard bistable system; compute separatrix analytically
+        coeffs = p.get_taylor_coeffs(8)
+        u, v = p.get_11_ss()
+        p1 = 0
+        p2 = 1
+        while abs(p2 - p1) > eps:
+            po = (p1 + p2)/2.0
+            sep_val = sum([(coeffs[i]/math.factorial(i))*(po - u)**i for i in range(len(coeffs))])
+            val = 1 - po - sep_val
+            if val > 0:
+                p1 = po
+            elif val < 0:
+                p2 = po
+        sep_point = 1 - po
+
+    print('    2D analytic separatrix at p={}'.format(sep_point))
+    return sep_point
 
 def project_to_2D(traj, ssa, ssb):
     """Projects a high-dimensional trajectory traj into a 2D system, and
@@ -476,7 +519,7 @@ def make_food_web(sep_list_2D, sep_list_11D):
     plt.axis([-edge, edge, -edge, edge])
     plt.axis('off')
     plt.tight_layout()
-    filename = 'figs/example_food_web_4.pdf'
+    filename = 'figs/example_food_web_5.pdf'
     plt.savefig(filename)
     print('saved fig to {}'.format(filename))
     return
@@ -626,19 +669,32 @@ sep_list_2D = {}
 sep_list_11D = {}
 
 labels = ['A', 'B', 'C', 'D', 'E']
-read_data = True 
+read_data = False
+filename = 'sep_lists_analytic'
+bisect_time_2D = 0
+analytic_time_2D = 0
+bisect_time_11D = 0
 if not read_data:
     combos = list(itertools.combinations(range(5), 2))
     for i,j in combos:
         print(labels[i], labels[j])
         ssa_11 = stein_steady_states[i]
         ssb_11 = stein_steady_states[j]
+        t0 = time.time()
         temp_separatrix_11D = bisection(ssa_11, ssb_11, .0001, mu, M)
+        bisect_time_11D += time.time() - t0
+
+        nu, L = SSR(ssa_11, ssb_11, mu, M)
+        t0 = time.time()
+        temp_separatrix_2D = get_analytic_separatrix(.0001, nu, L)
+        analytic_time_2D += time.time() - t0
 
         nu, L = SSR(ssa_11, ssb_11, mu, M)
         ssa_2 = np.array([1, 0])
         ssb_2 = np.array([0, 1])
-        temp_separatrix_2D = bisection(ssa_2, ssb_2, .0001, nu, L)
+        t0 = time.time()
+        bisection(ssa_2, ssb_2, .0001, nu, L)
+        bisect_time_2D += time.time() - t0
 
         sep_list_2D[(i, j)] = temp_separatrix_2D
         sep_list_11D[(i, j)] = temp_separatrix_11D
@@ -650,10 +706,13 @@ if not read_data:
             sep_list_11D[(j, i)] = 1 - temp_separatrix_11D
         except TypeError:
             sep_list_11D[(j, i)] = tuple(1 - val for val in temp_separatrix_11D)
-    with open('data/sep_lists', 'wb') as f:
+    with open('data/{}'.format(filename), 'wb') as f:
         pickle.dump((sep_list_2D, sep_list_11D), f)
+    print('bisection 11D time: {} s'.format(bisect_time_11D))
+    print('bisection 2D time: {} s'.format(bisect_time_2D))
+    print('analytic 2D time: {} s'.format(analytic_time_2D))
 else:
-    with open('data/sep_lists', 'rb') as f:
+    with open('data/{}'.format(filename), 'rb') as f:
         sep_list_2D, sep_list_11D = pickle.load(f)
         verbose = True
         labels = ['A', 'B', 'C', 'D', 'E']
@@ -669,8 +728,7 @@ else:
                             else:
 
                                 print('    {}D separatrices at p={} and p={}'.format(N, p[0], p[1]))
-                                
-  
+
         ##The lines of code in under the following "if True" statement  : 
         #1.) Collect the permuations of the 11D and 2D separatricies and put them into an two seperate arrays that are subsequently be resized as two nxn matricies. 
         # If separatrices disagree then the corresponding element is entered as a none-type.
@@ -768,7 +826,7 @@ if False:
 print('--')
 
 
-if True:
+if False:
     steady_states = 'ABCDE'
     pathss = []
     convpaths = []
