@@ -36,7 +36,6 @@ def integrand(x, t, mu, M):
             dxdt[i] = 0
     return dxdt
 
-
 def jacobian(x, t, mu, M):
     """ Return jacobian of N-dimensional gLV equation at steady state x """
     N = len(x)
@@ -524,9 +523,6 @@ def make_food_web(sep_list_2D, sep_list_11D):
     print('saved fig to {}'.format(filename))
     return
 
-paths = []
-single_list = []
-
 def generate_paths(SE_point,steadystate):
     """This function generates all possible paths from a given start point to a given end point """
     selectpathlist = []
@@ -538,7 +534,7 @@ def generate_paths(SE_point,steadystate):
             if elem[0] == SE_point[0] and elem[len(elem)-1] == SE_point[1]:
                 selectpathlist = selectpathlist + [elem]
     return selectpathlist
-            
+
 def conv(allpaths):
     """ this function will take all paths from a given start point to a given endpoint and convert them from 
     letters to numbers"""
@@ -550,11 +546,11 @@ def conv(allpaths):
     convdict = dict(zip(keys,values))
     for path in allpaths:
         #replace an element in a list using a dictionary lookup
-        rev_subs = { v:k for k,v in convdict.items()}  
-        p = [rev_subs.get(item,item)  for item in path]
-        allpathslist = allpathslist + [p] 
+        rev_subs = { v:k for k,v in convdict.items()}
+        p = [rev_subs.get(item,item) for item in path]
+        allpathslist = allpathslist + [p]
     return allpathslist
-#
+
 def red_sum(allpaths,separtrix_matrix):
     """ This function reduces all 1 by n paths to 1 by 2 paths and sums their corresponding separatrix values 
     in order to find the total path length"""
@@ -563,7 +559,6 @@ def red_sum(allpaths,separtrix_matrix):
     sum_list = []
 
     for paths in allpaths:
-
         #This block of code would be utilized if there were less than or equal to two steady states
         if len(paths) == 1:
             print('path==1')

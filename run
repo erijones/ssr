@@ -1,2 +1,2 @@
 #!/bin/bash
-./GLV.py
+./transplant_diversity.py

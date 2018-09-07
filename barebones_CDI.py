@@ -1,6 +1,6 @@
 #!/bin/python
 #
-# Version 0.2 
+# Version 1.0 
 # This file contains the barebones functions required to generate figures that
 # do not involve sporulation or mutation for the paper 'In silico analysis of
 # C. difficile infection: remediation techniques and biological adaptations' by
