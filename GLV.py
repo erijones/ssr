@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Aug 19 15:46:33 2018
-
 @author: parkershankin-clarke
 """
 
@@ -798,7 +797,7 @@ if True:
     sepa = sep_matrix_11D
 
 
-
+elem_list = []
 if True:
     make_food_web(sep_list_2D, sep_list_11D)
 
@@ -826,7 +825,7 @@ if False:
 print('--')
 
 
-if False:
+if True:
     steady_states = 'ABCDE'
     pathss = []
     convpaths = []
@@ -857,6 +856,13 @@ if False:
        print('-------------------')
        print(sortedict)
        print('-   -    -   -   -    -')
+       for j in range(0,len(sortedict)):
+           elem = sortedict[j]
+           elem_list = elem_list + [list(elem[0])] 
 
+
+#sorted list of all paths 
+ntuit = [elem_list[x:x+7] for x in range(0, len(elem_list),7)]
+   
 
 
