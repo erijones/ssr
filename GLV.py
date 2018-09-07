@@ -663,7 +663,7 @@ sep_list_2D = {}
 sep_list_11D = {}
 
 labels = ['A', 'B', 'C', 'D', 'E']
-read_data = False
+read_data = True 
 filename = 'sep_lists_analytic'
 bisect_time_2D = 0
 analytic_time_2D = 0
@@ -717,7 +717,7 @@ else:
                         print(labels[i], labels[j])
                         for N, sep_list in zip([2, 11], [sep_list_2D, sep_list_11D]):
                             p = sep_list[(i, j)]
-                            if isinstance(p, float):
+                            if isinstance(p, float) or isinstance(p, int):
                                 print('    {}D separatrix at p={}'.format(N, p))
                             else:
 
