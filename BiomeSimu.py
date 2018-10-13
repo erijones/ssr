@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Sep 23 08:42:06 2018
-
 @author: parkershankin-clarke
 """
 
@@ -146,12 +145,24 @@ def SSR(xa,xb,mu,M):
     """This function performs a steady state reduction by taking in the
     relevant parameters, then performing the relevant operations, and finally
     returning the steady state reduced forms of the parameters "nu" and "L" """
+   
+    new_mu_a = ((np.dot(xa, mu))/sum(xa))
+    new_mu_b = ((np.dot(xb, mu))/sum(xb))
+    new_M_aa = np.dot(xa.T,np.dot(M,xa)) / sum(xa)
+    new_M_ab = np.dot(xa.T,np.dot(M,xb)) / sum(xa)
+    new_M_ba = np.dot(xb.T,np.dot(M,xa)) / sum(xb)
+    new_M_bb = np.dot(xb.T,np.dot(M,xb)) / sum(xb),
+        
+    
+    
+    
+    
     #nu is the steady-state reduced mu
-    nu = np.array([np.dot(xa, mu),
-                  np.dot(xb, mu)])
+    nu = np.array([new_mu_a,
+                  new_mu_b])
     #L is the steady-state reduced M
-    L = np.array([[np.dot(xa.T,np.dot(M,xa)), np.dot(xa.T,np.dot(M,xb))],
-                 [np.dot(xb.T,np.dot(M,xa)), np.dot(xb.T,np.dot(M,xb))]])
+    L = np.array([[new_M_aa, new_M_ab],
+                 [new_M_ba, new_M_bb]])
     return nu,L
 
 
@@ -965,7 +976,7 @@ def extra():
     # found if the steady states that correspond to the sepatratrices have
     # meaningful trajectories then the are subsequently passed as arguments in
     # the function get_relative_deviation.
-    if False:
+    if True:
         combos = list(itertools.combinations(range(5), 2))
         for i,j in combos:
             ssa = stein_steady_states[i]
@@ -983,7 +994,7 @@ def extra():
             else:
                 print(pstar)
 
-    if False:
+    if True:
         make_food_web(sep_list_2D, sep_list_11D)
 
 
@@ -1068,7 +1079,7 @@ def main():
         hd = hamming_distance(lntuit11d,lntuit2d)
 
         print('the hamming distance for the norm values between {} and {} is {}'.format(a[0],a[len(lntuit11d[0])-1],hd))
-
+    
 
 if __name__ == "__main__":
     main()
