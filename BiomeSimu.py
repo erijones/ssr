@@ -151,7 +151,7 @@ def SSR(xa,xb,mu,M):
     new_M_aa = np.dot(xa.T,np.dot(M,xa)) / sum(xa)
     new_M_ab = np.dot(xa.T,np.dot(M,xb)) / sum(xa)
     new_M_ba = np.dot(xb.T,np.dot(M,xa)) / sum(xb)
-    new_M_bb = np.dot(xb.T,np.dot(M,xb)) / sum(xb),
+    new_M_bb = np.dot(xb.T,np.dot(M,xb)) / sum(xb)
         
     
     
@@ -189,7 +189,7 @@ def get_analytic_separatrix(eps, mu, M):
         sep_point = (0, 1)
     else:
         # standard bistable system; compute separatrix analytically
-        coeffs = p.get_taylor_coeffs(8)
+        coeffs = p.get_taylor_coeffs(7)
         u, v = p.get_11_ss()
         p1 = 0
         p2 = 1
@@ -405,14 +405,14 @@ def TimeAndState(labels,stein_steady_states,mu,M,filename):
         analytic_time_2D += time.time() - t0
         ## calculate 2D sepatrices using the bisection method
         #steady states in 2D
-        ssa_2 = np.array([1, 0])
-        ssb_2 = np.array([0, 1])
-        #start clock
-        t0 = time.time()
-        # get 2D sepatrices using the bisection method
-        bisection(ssa_2, ssb_2, .0001, nu, L)
-        #record time
-        bisect_time_2D += time.time() - t0
+        #ssa_2 = np.array([1, 0])
+        #ssb_2 = np.array([0, 1])
+        ##start clock
+        #t0 = time.time()
+        ## get 2D sepatrices using the bisection method
+        #bisection(ssa_2, ssb_2, .0001, nu, L)
+        ##record time
+        #bisect_time_2D += time.time() - t0
         # record  2D sepatricies using into the array sep_list_2D (via analytic method )
         # record  11D sepatricies using into the array sep_list_11D (via bisection method )
         sep_list_2D[(i, j)] = temp_separatrix_2D
@@ -1014,7 +1014,7 @@ def main():
     labels = ['A', 'B', 'C', 'D', 'E']
     # file that contains precalculated separatricies(speeds up program time)
     filename = 'sep_lists_analytic'
-    read_data = True
+    read_data = False 
     if not read_data:
         # calculates the 2-D and 11-D separatrix for each path (using bisection and analytic methods)
         # record time that it takes to calculate generate separatricies 
@@ -1024,6 +1024,9 @@ def main():
        sep_list_2D, sep_list_11D = FastTimeAndState(labels,stein_steady_states,mu,M,filename)
 
     sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states)
+
+    make_food_web(sep_list_2D, sep_list_11D)
+    return
 
     ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D, verbose=False)
     ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, verbose=False)
