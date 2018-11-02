@@ -25,6 +25,7 @@ import warnings
 warnings.filterwarnings("ignore")
 import operator
 import time
+from itertools import islice
 
 def integrand(x, t, mu, M):
     """ Return N-dimensional gLV equations """
@@ -640,6 +641,21 @@ def delandsort(mydict):
     sorted_d = sorted(mydict.items(), key=operator.itemgetter(1))
     return sorted_d
 
+def compare(array1,array2):
+    "The purpose of this function is to compare 2-D and N-D optimal paths. It returns path trajectory, and the agreement between the two respective paths"
+    counter = 0
+    start = 0
+    end = 0
+    if abs(len(array1) - len(array2)) == 0:
+        for j in range(len(array1)):
+            elem1 = array1[j]
+            elem2 = array2[j]
+            start = elem1[0]
+            end = elem1[len(elem1)-1]
+            if elem1 == elem2 :
+                counter = counter + 1
+    return counter,start,end
+
 ###############################################################################
 
 
@@ -663,7 +679,7 @@ sep_list_2D = {}
 sep_list_11D = {}
 
 labels = ['A', 'B', 'C', 'D', 'E']
-read_data = True 
+read_data = False 
 filename = 'sep_lists_analytic'
 bisect_time_2D = 0
 analytic_time_2D = 0
@@ -705,23 +721,26 @@ if not read_data:
     print('bisection 11D time: {} s'.format(bisect_time_11D))
     print('bisection 2D time: {} s'.format(bisect_time_2D))
     print('analytic 2D time: {} s'.format(analytic_time_2D))
+    print(sep_list_11D)
 else:
     with open('data/{}'.format(filename), 'rb') as f:
         sep_list_2D, sep_list_11D = pickle.load(f)
-        verbose = True
+        verbose = False
         labels = ['A', 'B', 'C', 'D', 'E']
-        if verbose:
-            for i in range(5):
-                for j in range(5):
-                    if i < j:
-                        print(labels[i], labels[j])
-                        for N, sep_list in zip([2, 11], [sep_list_2D, sep_list_11D]):
-                            p = sep_list[(i, j)]
-                            if isinstance(p, float) or isinstance(p, int):
-                                print('    {}D separatrix at p={}'.format(N, p))
-                            else:
-
-                                print('    {}D separatrices at p={} and p={}'.format(N, p[0], p[1]))
+    print(sep_list_2D)
+    print(sep_list_11D)
+#        if verbose:
+#            for i in range(5):
+#                for j in range(5):
+#                    if i < j:
+#                        print(labels[i], labels[j])
+#                        for N, sep_list in zip([2, 11], [sep_list_2D, sep_list_11D]):
+#                            p = sep_list[(i, j)]
+#                            if isinstance(p, float) or isinstance(p, int):
+#                                print('    {}D separatrix at p={}'.format(N, p))
+#                            else:
+#
+#                                print('    {}D separatrices at p={} and p={}'.format(N, p[0], p[1]))
 
         ##The lines of code in under the following "if True" statement  : 
         #1.) Collect the permuations of the 11D and 2D separatricies and put them into an two seperate arrays that are subsequently be resized as two nxn matricies. 
@@ -761,17 +780,25 @@ if True:
                      p=0
                      sep_matrix_11D = np.append(sep_matrix_11D,p)
                      norm_matrix_11D = np.append(norm_matrix_11D,p)
-    #2-D        
+      #2-D        
     if True:
         for i in range(numss):
             for j in range(numss):
                 if i != j:
                     for N, sep_list in zip([2, 11], [sep_list_2D]):
+#                        print('sep list 2d')
+#                        print(sep_list)
                         p = sep_list[(i, j)]
                         if isinstance(p, float):
                             sep_matrix_2D = np.append(sep_matrix_2D, p)
                             norm = p * np.linalg.norm(np.array([0,1]) - np.array([1,0]))
                             norm_matrix_2D = np.append(norm_matrix_2D,norm)   
+                        elif isinstance(p,int):
+#                            print('int p is')
+#                            print(p)
+                            sep_matrix_2D = np.append(sep_matrix_2D, .0000000001)
+                            norm = p * np.linalg.norm(ssb - ssa)
+                            norm_matrix_2D = np.append(sep_matrix_2D,norm) 
                         else:
                             sep_matrix_2D = np.append(sep_matrix_2D, None)
                             norm_matrix_2D = np.append(norm_matrix_2D,None)
@@ -779,9 +806,11 @@ if True:
                     p=0
                     sep_matrix_2D = np.append(sep_matrix_2D,p)
                     norm_matrix_2D = np.append(norm_matrix_2D,p)
+                    print(norm_matrix_2D)
     
-    ##reformat both arrays into  numss x numss matricies:
-    
+#    
+#    ##reformat both arrays into  numss x numss matricies:
+#    
     #arrays for part1.) (look above for more information)                  
     sep_matrix_2D = np.resize(sep_matrix_2D,(5,5))
     sep_matrix_11D = np.resize(sep_matrix_11D,(5,5))
@@ -790,9 +819,23 @@ if True:
     norm_matrix_2D = np.resize(norm_matrix_2D,(5,5))
     norm_matrix_11D = np.resize(norm_matrix_11D,(5,5))
     sepa = sep_matrix_11D
-
+    print('--------')
+    print('sep_matrix_2D')
+    print(sep_matrix_2D)
+    print('sep_matrix_11D')
+    print(sep_matrix_11D)
+    print('norm_matrix_2D')
+    print(norm_matrix_2D)
+    print('norm_matrix_11D')
+    print(norm_matrix_11D)
+    print('------------')
+    
+#
 
 elem_list = []
+elem_list11d = []
+elem_list2d = []
+
 if True:
     make_food_web(sep_list_2D, sep_list_11D)
 
@@ -817,9 +860,9 @@ if False:
             print('--------')
         else:
             print(pstar)
-print('--')
 
 
+index= []
 if True:
     steady_states = 'ABCDE'
     pathss = []
@@ -840,24 +883,86 @@ if True:
     
     #reverse convpaths in order to match the labels in pathss
     revconpaths = list(reversed(convpaths))
-    #reduce and sum in order to find path lengths 
-    pathlengths = red_sum(revconpaths,sep_matrix_11D)
+    #reduce and sum in order to find path lengths in 11-D
+    pathlengths11d = red_sum(revconpaths,sep_matrix_11D)
+    #reduce and sum in order to find path lengths in 2-D
+    pathlengths2d = red_sum(revconpaths,sep_matrix_2D)
+
+    
+    #put pathlengths in dictionary and sort them 11d
+    for i in range(len(pathss)):
+       pathdict11d = dictionary(pathlengths11d[i],pathss[i])
+       sortedict11d = delandsort(pathdict11d)
+#       print(pathdict11d)
+#       print('-------------------')
+       print(sortedict11d)
+       print('-   -    -   -   -    -')
+       
+       ####################################
+       
+       for j in range(0,len(sortedict11d)):
+           elem11d = sortedict11d[j]
+           elem_list11d = elem_list11d + [list(elem11d[0])] 
+       index  = index + [len(sortedict11d)]
+       print('index')
+       print(len(index))
+       
     
     #put pathlengths in dictionary and sort them
     for i in range(len(pathss)):
-       pathdict = dictionary(pathlengths[i],pathss[i])
-       sortedict = delandsort(pathdict)
-       print(pathdict)
+       pathdict2d = dictionary(pathlengths2d[i],pathss[i])
+       sortedict2d = delandsort(pathdict2d)
+#       print(pathdict11d)
        print('-------------------')
-       print(sortedict)
-       print('-   -    -   -   -    -')
-       for j in range(0,len(sortedict)):
-           elem = sortedict[j]
-           elem_list = elem_list + [list(elem[0])] 
-
-
-#sorted list of all paths 
-ntuit = [elem_list[x:x+7] for x in range(0, len(elem_list),7)]
+       print(sortedict2d)
+#       print('-   -    -   -   -    -')
+       for j in range(0,len(sortedict2d)):
+           elem2d = sortedict2d[j]
+           elem_list2d = elem_list2d + [list(elem2d[0])]  
+#    print('len elem_list2d')
+#    print(len(elem_list2d))
+#    https://stackoverflow.com/questions/38861457/splitting-a-list-into-uneven-groups
    
+    mylist =elem_list11d
+    seclist = index
+    it = iter(mylist) 
+    ntuit11d =[list(islice(it, 0, i)) for i in seclist]
 
+    mylist =elem_list2d
+    seclist = index
+    it = iter(mylist) 
+    ntuit2d =[list(islice(it, 0, i)) for i in seclist]
+
+    
+
+if abs(len(ntuit2d) - len(ntuit11d)) == 0 :
+    for i in range(len(ntuit2d)):
+        array1 = ntuit2d[i]          
+        array2 = ntuit11d[i]
+        numcorrect,start,end= compare(array1,array2)
+        print("Out of the 7 possible ways to get from {} to {}, the 2-D  and 11-D model agree {}%  ".format(start,end,(numcorrect/7)*100))
+
+
+
+    for i in range(len(ntuit2d)):
+        collection2d = ntuit2d[i]
+        collection11d = ntuit11d[i]
+        if len(collection2d) == len(collection11d):
+            l = []
+            for j in range(len(collection2d)):
+                l = []
+                m = []
+                elem11d =  tuple(collection11d[j])
+                elem2d = tuple(collection2d[j])
+                l.append(elem11d)
+                m.append(elem2d)
+                d =  dictionary(l,m)
+                print(d)
+            print('----')
+
+#            
+#
+#            
+
+          
 
