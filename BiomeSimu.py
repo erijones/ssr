@@ -27,7 +27,10 @@ import operator
 import time
 from itertools import islice
 import this
+#import cProfile
+import cProfile, pstats, io
 #from profilestats import profile
+
 
 '''
 @profile
@@ -850,7 +853,7 @@ def navigate_between_fps(sep_matrix, verbose, labels,hrz):
             # find the distance of all possible paths that start and end with start_end
             for within_path in within_paths:
                 within_path = list(within_path)
-                print(within_path)
+            
                 full_path = [start_end[0]] + within_path + [start_end[-1]]
     #            print(full_path)
                 full_path_str = ''.join(full_path)
@@ -1135,8 +1138,28 @@ def Track(Stein,UD1,UD2):
         SmallD =  [state1.index(element)] + SmallD  
     print(LargeD)
     print(SmallD)
-    
 
+  
+def profile(fnc):
+    
+    """A decorator that uses cProfile to profile a function"""
+    
+    def inner(*args, **kwargs):
+        
+        pr = cProfile.Profile()
+        pr.enable()
+        retval = fnc(*args, **kwargs)
+        pr.disable()
+        s = io.StringIO()
+        sortby = 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print(s.getvalue())
+        return retval
+
+    return inner
+
+@profile
 def main():
     #in S : 0,2;in 1UD :2 --> 0,0 --> 6;in 2UD : 2 --> 0, 0 --> 25
     generateAndRead = True
@@ -1160,8 +1183,6 @@ def main():
         for i in range(len(criteria)):
             criteria[i] = options[optionInput[0]][i]
         sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels = Generate_And_Save_FixedPoints(criteria[0],criteria[1],criteria[2],criteria[3])
-    
-    
     trackstates = False
     if trackstates:
         Stein = None
@@ -1189,7 +1210,7 @@ def main():
         labellist = []
         labellist = list(map(str, labels))
         
-        hrz = 2
+        hrz = 3
         ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D, False,labellist,hrz)
         ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, False,labellist,hrz) 
         
@@ -1214,6 +1235,7 @@ def main():
             print('   hamming distance:', hd)
             total_hamming_distance += hd
         print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
+        
 
 
 
