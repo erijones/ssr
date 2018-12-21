@@ -27,8 +27,13 @@ import operator
 import time
 from itertools import islice
 import this
+#from profilestats import profile
 
-
+'''
+@profile
+def my_function(args, etc):
+    pass
+'''
 def get_stein_parameters():  
     """ Read in parameters M and mu (NxN and Nx1 np.arrays) and initial
     conditions (there are 9) that were generated in Stein et al., 2013"""
@@ -315,6 +320,7 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
     for p, went_to_xa in zip(ps, went_to_xa):
         if not went_to_xa:
             separatrix_xa = p
+            print(separatrix_xa)
             break
 
     for p, went_to_xb in zip(ps[::-1], went_to_xb[::-1]):
@@ -746,7 +752,6 @@ def red_sum(allpaths,separtrix_matrix):
     sep = separtrix_matrix
     sepa = 0
     sum_list = []
-
     for paths in allpaths:
         #This block of code would be utilized if there were less than or equal to two steady states
         if len(paths) == 1:
@@ -811,7 +816,7 @@ def red_sum(allpaths,separtrix_matrix):
         cchunksumm = [sum_list[x:x+len(paths)] for x in range(0, len(sum_list), len(paths))]
     return cchunksumm
 
-def navigate_between_fps(sep_matrix, verbose, labels):
+def navigate_between_fps(sep_matrix, verbose, labels,hrz):
     """ Return all possible ways from one steady state to another. Returns a
     dictionary ordered_paths that takes a pair of steady states as a key (e.g.
     ordered_paths['AC']) and returns a list of the shortest to the longest
@@ -833,23 +838,19 @@ def navigate_between_fps(sep_matrix, verbose, labels):
             start_end_str = ''.join(start_end)
             ordered_paths[start_end_str] = []
 
-#   
             # get all possible in-between paths that start and end with start_end 
             remainder = [item for item in ss_names if item not in start_end]
+       
 
             
             within_paths = []
-            for N in range(3):
+            for N in range(hrz):
                 within_paths.extend(itertools.combinations(remainder, N))
-                
-                
-                
-#               
-    
+
             # find the distance of all possible paths that start and end with start_end
             for within_path in within_paths:
                 within_path = list(within_path)
-    #            print(within_path)
+                print(within_path)
                 full_path = [start_end[0]] + within_path + [start_end[-1]]
     #            print(full_path)
                 full_path_str = ''.join(full_path)
@@ -1157,9 +1158,9 @@ def main():
         ## 6 : save UD1 states
         ## 7 : save UD2 states
         for i in range(len(criteria)):
-            criteria[i] = options[optionInput[3]][i]
+            criteria[i] = options[optionInput[0]][i]
         sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels = Generate_And_Save_FixedPoints(criteria[0],criteria[1],criteria[2],criteria[3])
-        print(sep_matrix_2D)
+    
     
     trackstates = False
     if trackstates:
@@ -1179,16 +1180,18 @@ def main():
         for i in range(len(criteria)):
             criteria[i] = options[optionInput[4]][i]
         Track(criteria[0],criteria[1],criteria[2])
-#    labellist = ['0','2']
-    labellist = range(len(labels))
+#       labellist = ['0','2']
+        labellist = range(len(labels))
+       
     orderedPaths = True
     if orderedPaths and generateAndRead:
-        
+    
         labellist = []
         labellist = list(map(str, labels))
         
-        ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D, False,labellist)
-        ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, False,labellist) 
+        hrz = 2
+        ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D, False,labellist,hrz)
+        ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, False,labellist,hrz) 
         
         total_hamming_distance = 0
         print('NORMEDss ------------------------------------')
