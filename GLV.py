@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 # -*- coding: utf-8 -*-
 """
 Created on Sun Sep 23 08:42:06 2018
@@ -145,24 +145,12 @@ def SSR(xa,xb,mu,M):
     """This function performs a steady state reduction by taking in the
     relevant parameters, then performing the relevant operations, and finally
     returning the steady state reduced forms of the parameters "nu" and "L" """
-   
-    new_mu_a = ((np.dot(xa, mu))/sum(xa))
-    new_mu_b = ((np.dot(xb, mu))/sum(xb))
-    new_M_aa = np.dot(xa.T,np.dot(M,xa)) / sum(xa)
-    new_M_ab = np.dot(xa.T,np.dot(M,xb)) / sum(xa)
-    new_M_ba = np.dot(xb.T,np.dot(M,xa)) / sum(xb)
-    new_M_bb = np.dot(xb.T,np.dot(M,xb)) / sum(xb)
-        
-    
-    
-    
-    
     #nu is the steady-state reduced mu
-    nu = np.array([new_mu_a,
-                  new_mu_b])
+    nu = np.array([np.dot(xa, mu),
+                  np.dot(xb, mu)])
     #L is the steady-state reduced M
-    L = np.array([[new_M_aa, new_M_ab],
-                 [new_M_ba, new_M_bb]])
+    L = np.array([[np.dot(xa.T,np.dot(M,xa)), np.dot(xa.T,np.dot(M,xb))],
+                 [np.dot(xb.T,np.dot(M,xa)), np.dot(xb.T,np.dot(M,xb))]])
     return nu,L
 
 
@@ -189,7 +177,7 @@ def get_analytic_separatrix(eps, mu, M):
         sep_point = (0, 1)
     else:
         # standard bistable system; compute separatrix analytically
-        coeffs = p.get_taylor_coeffs(7)
+        coeffs = p.get_taylor_coeffs(8)
         u, v = p.get_11_ss()
         p1 = 0
         p2 = 1
@@ -265,7 +253,7 @@ def get_steady_state(point, mu, M):
     final_sol = sol[-1]
     return final_sol
 
-    
+
 def goes_to_xa(xa, xb, val):
     """ This function checks to see if the point val converges to xa """
     if np.linalg.norm(val - xa) < .001:
@@ -279,7 +267,7 @@ def goes_to_xb(xa, xb, val):
         return True
     else:
         return False
-    
+
 def get_separatrix_point(xa, xb, mu, M, num_points=101):
     """ This function find the separatrix between the fixed points xa and xb.
     If their basins of attraction agree, i.e. separatrix_xa and separatrix_xb
@@ -344,7 +332,7 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
             return separatrix_xa, separatrix_xb
         else:
             return separatrix_xa, separatrix_xb
-    
+
 def bisection(xa,xb,eps, mu, M):
     """Identify the separatrix (as a proportion p between xa and xb) for the
     system parameterized by mu and M, to eps precision, via the bisection
@@ -405,14 +393,14 @@ def TimeAndState(labels,stein_steady_states,mu,M,filename):
         analytic_time_2D += time.time() - t0
         ## calculate 2D sepatrices using the bisection method
         #steady states in 2D
-        #ssa_2 = np.array([1, 0])
-        #ssb_2 = np.array([0, 1])
-        ##start clock
-        #t0 = time.time()
-        ## get 2D sepatrices using the bisection method
-        #bisection(ssa_2, ssb_2, .0001, nu, L)
-        ##record time
-        #bisect_time_2D += time.time() - t0
+        ssa_2 = np.array([1, 0])
+        ssb_2 = np.array([0, 1])
+        #start clock
+        t0 = time.time()
+        # get 2D sepatrices using the bisection method
+        bisection(ssa_2, ssb_2, .0001, nu, L)
+        #record time
+        bisect_time_2D += time.time() - t0
         # record  2D sepatricies using into the array sep_list_2D (via analytic method )
         # record  11D sepatricies using into the array sep_list_11D (via bisection method )
         sep_list_2D[(i, j)] = temp_separatrix_2D
@@ -430,13 +418,13 @@ def TimeAndState(labels,stein_steady_states,mu,M,filename):
         with open('data/{}'.format(filename), 'wb') as f:
         # write a pickled representation of sep_list_2D and sep_list_11D to the open file sep_lists_analytic.
             pickle.dump((sep_list_2D, sep_list_11D), f)
-            
+
         print('bisection 11D time: {} s'.format(bisect_time_11D))
         print('bisection 2D time: {} s'.format(bisect_time_2D))
         print('analytic 2D time: {} s'.format(analytic_time_2D))
     return sep_list_2D,sep_list_11D
-            
-    
+
+
 def FastTimeAndState(labels,stein_steady_states,mu,M,filename):
     #
     sep_list_2D = {}
@@ -465,13 +453,13 @@ def NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states):
     #arrays intialized for part1.) (look above for more information)
     sep_matrix_11D = np.array([])
     sep_matrix_2D = np.array([])
-        
+
     #arrays intialized for part2.) (look above for more information)
     norm_matrix_2D = np.array([])
     norm_matrix_11D = np.array([])
-    
+
     index_matrix= np.array([])
-    
+
     #11-D 
     if True:
         for i in range(len(labels)):
@@ -495,7 +483,7 @@ def NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states):
                      index_matrix = np.append(index_matrix,(i,j))
                      sep_matrix_11D = np.append(sep_matrix_11D,p)
                      norm_matrix_11D = np.append(norm_matrix_11D,p)
-                
+
     #2-D        
     if True:
         for i in range(len(labels)):
@@ -522,15 +510,15 @@ def NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states):
                     p=0
                     sep_matrix_2D = np.append(sep_matrix_2D,p)
                     norm_matrix_2D = np.append(norm_matrix_2D,p)
-    
-    
+
+
     ##reformat both arrays into  numss x numss matricies:
-    
+
     #arrays for part1.) (look above for more information)                  
     sep_matrix_2D = np.resize(sep_matrix_2D,(5,5))
     sep_matrix_11D = np.resize(sep_matrix_11D,(5,5))
 #    index_matrix = np.resize( index_matrix(5,5))
-    
+
 
     #arrays for part2.) (look above for more information)  
     norm_matrix_2D = np.resize(norm_matrix_2D,(5,5))
@@ -541,7 +529,7 @@ def make_food_web(sep_list_2D, sep_list_11D):
     """This function simulates a network of steady-states solutions and their sepatricies. """
     fig, ax = plt.subplots(figsize=(6,6))
     wheels = []
-    labels = list(range(0,5))
+    labels = ['A', 'B', 'C', 'D', 'E']
     for i in range(len(labels)):
         # save the order of colors when plotting
         wheels.append(ax.plot([0], [0], linewidth=0.0))
@@ -553,7 +541,7 @@ def make_food_web(sep_list_2D, sep_list_11D):
     circs = []; xx = []; yy = [];
     circ_xx = []; circ_yy = []
     #print('colorwheel is', wheels[1][0].get_color())
-    labels = list(range(0,5))
+    labels = ['A', 'B', 'C', 'D', 'E']
     for i in range(len(labels)):
         xx.append(np.sin(2*np.pi*i/len(labels)))
         yy.append(np.cos(2*np.pi*i/len(labels)))
@@ -624,7 +612,7 @@ def make_food_web(sep_list_2D, sep_list_11D):
     plt.savefig(filename)
     print('saved fig to {}'.format(filename))
     return                
-                
+
 # from Ian Hincks, https://stackoverflow.com/questions/37765197/darken-or-lighten-a-color-in-matplotlib
 def lighten_color(color, amount=0.5):
     """
@@ -752,14 +740,14 @@ def red_sum(allpaths,separtrix_matrix):
                         if all(isinstance(n, float) for n in single_list):
                             #credit : https://stackoverflow.com/questions/8964191/test-type-of-elements-python-tuple-list
                             sepa = sum(single_list)
-    
+
                         else:
                             sepa = None
-    
-              
+
+
                     sum_list += [[sepa]]
 
-            
+
         #This block of code would be utilized if there were greater than or equal to two steady states
         else:
 
@@ -786,69 +774,9 @@ def red_sum(allpaths,separtrix_matrix):
                         else:
                             sepsum = None
                     sum_list =  sum_list + [sepsum]
-                    
+
         cchunksumm = [sum_list[x:x+len(paths)] for x in range(0, len(sum_list), len(paths))]
     return cchunksumm
-
-def navigate_between_fps(sep_matrix, verbose=False):
-    """ Return all possible ways from one steady state to another. Returns a
-    dictionary ordered_paths that takes a pair of steady states as a key (e.g.
-    ordered_paths['AC']) and returns a list of the shortest to the longest
-    path. Also returns a dictionary path_lengths that takes a path (e.g.
-    path_lengths['ADCE']) and returns the length of that path """
-
-    ss_names = 'ABCDE'
-    path_lengths = {}
-    ordered_paths = {}
-
-    starts_ends = itertools.permutations(ss_names, 2)
-    for start_end in starts_ends:
-        # start_end looks like ('A', 'B'); start_end_str looks like 'AB'
-        start_end_str = ''.join(start_end)
-        ordered_paths[start_end_str] = []
-
-        # get all possible in-between paths that start and end with start_end 
-        remainder = [item for item in ss_names if item not in start_end]
-        within_paths = []
-        for N in range(len(remainder)+1):
-            within_paths.extend(itertools.combinations(remainder, N))
-
-        # find the distance of all possible paths that start and end with start_end
-        for within_path in within_paths:
-            within_path = list(within_path)
-            full_path = [start_end[0]] + within_path + [start_end[-1]]
-            full_path_str = ''.join(full_path)
-            full_path_indices = [ss_names.index(val) for val in full_path]
-            full_path_distance = 0
-            for i in range(len(full_path_indices)-1):
-                i1 = full_path_indices[i]
-                i2 = full_path_indices[i+1]
-                try:
-                    full_path_distance += sep_matrix[i1, i2]
-                except TypeError:
-                    full_path_distance += 1000
-            if verbose:
-                print(full_path_str, full_path_distance)
-            path_lengths[full_path_str] = full_path_distance
-
-            # add the distance of possible paths from start to end in order
-            # (this is effectively 'insertion sort')
-            if len(ordered_paths[start_end_str]) == 0:
-                ordered_paths[start_end_str].append(full_path_str)
-            else:
-                insert_flag = False
-                for i,path in enumerate(ordered_paths[start_end_str]):
-                    if (full_path_distance < path_lengths[path]) and not insert_flag:
-                        ordered_paths[start_end_str].insert(i, full_path_str)
-                        insert_flag = True
-                if not insert_flag:
-                    ordered_paths[start_end_str].append(full_path_str)
-        if verbose:
-            print(ordered_paths[start_end_str])
-            print()
-
-    return ordered_paths, path_lengths
-
 
 def sortedpathdic(sep_matrix_11D,sep_matrix_2D):
     steady_states = 'ABCDE'
@@ -882,8 +810,8 @@ def sortedpathdic(sep_matrix_11D,sep_matrix_2D):
        pathdict2d = dictionary(pathlengths2d[i],pathlist[i])
        sortedict2d = delandsort(dict(pathdict2d))
        d2 = [[(sortedict2d)]] + d2
-       
-       
+
+
     return d11,d2
 #               
 
@@ -939,8 +867,8 @@ def justkeys(sep11,sep2,norm11,norm2):
     for dictttt in sep11:
         key_listnorm11d  = list(dictionary[0].keys()) + key_listnorm11d
         indexn11d = [len(dictionary[0].keys())] + indexn11d 
-    
-    
+
+
     mylist = key_listsep11d
     seclist = indexs11d
     it = iter(mylist) 
@@ -950,17 +878,17 @@ def justkeys(sep11,sep2,norm11,norm2):
     seclist = indexs2d
     it = iter(mylist) 
     ntuit2sd =[list(islice(it, 0, i)) for i in seclist]
-    
+
     mylist = key_listnorm11d
     seclist = indexn11d
     it = iter(mylist) 
     ntuit11nd =[list(islice(it, 0, i)) for i in seclist]
-    
+
     mylist = key_listnorm2d
     seclist = indexn2d
     it = iter(mylist) 
     ntuit2nd =[list(islice(it, 0, i)) for i in seclist]
-    
+
     return ntuit11sd,ntuit2sd,ntuit11nd,ntuit2nd
 
 def hamming_distance(s1, s2):
@@ -968,15 +896,47 @@ def hamming_distance(s1, s2):
     return sum(ch1 != ch2 for ch1, ch2 in zip(s1, s2))
 
 
-def extra():
-    """ Extra code from the main function. Won't run as is, unless necessary
-    parameters (e.g. stein_steady_states) are generated elsewhere """
-    # If this block is designated as True then all of the pairs of Stein's
-    # steady states are found. Using the bisection method the separatrices are
-    # found if the steady states that correspond to the sepatratrices have
-    # meaningful trajectories then the are subsequently passed as arguments in
-    # the function get_relative_deviation.
-    if True:
+def main():
+    # load stein parameters
+    param_list, ics = get_stein_parameters()
+    # assign indivdual paramters from param_list
+    labels, mu, M, eps = param_list
+    # stable nonnegative fixedpoint list
+    stable_fps = get_nonnegative_fps(mu, M,0,False)
+    # unstable (2 directions) nonegative fixedpoint list
+    unstable_2_fps = get_nonnegative_fps(mu,M,2,False)
+    # get mactching steady states from a dictionary of stein's steady states
+    stein_steady_states = get_stein_steady_states(unstable_2_fps)
+    # if the stein fixed points match the fixed points generate by stabe_fps then add them to a list called stable_indices
+    # Note that : the truly stable steady states are indices 0 and 2 (A and C)
+    stable_indices = []
+    for stab_fp in stable_fps:
+        for i,stein_fp in enumerate(stein_steady_states):
+            if np.linalg.norm(stab_fp - stein_fp) < .001:
+                stable_indices.append(i)
+    #labels for each steady state
+    labels = ['A', 'B', 'C', 'D', 'E']
+    # file that contains precalculated separatricies(speeds up program time)
+    filename = 'sep_lists_analytic'
+    read_data = False
+    if not read_data:
+        # calculates the 2-D and 11-D separatrix for each path (using bisection and analytic methods)
+        # record time that it takes to calculate generate separatricies 
+        sep_list_2D, sep_list_11D = TimeAndState(labels,stein_steady_states,mu,M,filename)
+    else:
+       # reads pre-generated analytic sepatrix data from the file 'sep_lists_analytic'
+       sep_list_2D, sep_list_11D = FastTimeAndState(labels,stein_steady_states,mu,M,filename) 
+
+    if True: 
+        sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states)
+
+    if False:
+        make_food_web(sep_list_2D, sep_list_11D)
+
+    #If this block is designated as True then all of the pairs of Stein's steady states are found. Using the bisection method the separatrices are found
+    # if the steady states that correspond to the sepatratrices have meaningful trajectories then the are subsequently passed as arguments in the function
+    # get_relative_deviation.
+    if False:
         combos = list(itertools.combinations(range(5), 2))
         for i,j in combos:
             ssa = stein_steady_states[i]
@@ -993,97 +953,35 @@ def extra():
                 print('The relative deviation is {} and {} for stein_state{} and stein_state{}'.format(relative_dev_1, relative_dev_2,i,j))
             else:
                 print(pstar)
-
     if True:
-        make_food_web(sep_list_2D, sep_list_11D)
+#
+        # print the norm and sep dictionaries with keys and values
+        norm11,norm2 = sortedpathdic(norm_matrix_11D,norm_matrix_2D)
+        sep11, sep2 = sortedpathdic(sep_matrix_11D,sep_matrix_2D)
+        # returns only the keys for the 11d separatrix,2d separatrix, 11d norm, and 2d norm 
+        ntuit11sd,ntuit2sd,ntuit11nd,ntuit2nd = justkeys(sep11,sep2,norm11,norm2)
+
+        #finds the hamming distance for the norm and the separatrix paths
+        for i in range(len(ntuit11sd)):
+            lntuit11d = ntuit11sd[i]
+            lntuit2d = ntuit2sd[i]
+            a = lntuit11d[0]
+            hd = hamming_distance(lntuit11d,lntuit2d)
+            print('the hamming distance for the separatrices values between {} and {} is {}'.format(a[0],a[len(lntuit11d[0])-1],hd))
+
+        for i in range(len(ntuit11nd)):
+            lntuit11d = ntuit11nd[i]
+            lntuit2d = ntuit2nd[i]
+            a = lntuit11d[0]
+            hd = hamming_distance(lntuit11d,lntuit2d)
+
+            print('the hamming distance for the norm values between {} and {} is {}'.format(a[0],a[len(lntuit11d[0])-1],hd))
 
 
 
-def main():
-    # load stein parameters
-    param_list, ics = get_stein_parameters()
-    # assign individual parameters from param_list
-    labels, mu, M, eps = param_list
-    # stable nonnegative fixedpoint list
-    stable_fps = get_nonnegative_fps(mu, M,0,False)
-    # unstable (2 directions) nonegative fixedpoint list
-    unstable_2_fps = get_nonnegative_fps(mu,M,2,False)
-    # get mactching steady states from a dictionary of stein's steady states
-    stein_steady_states = get_stein_steady_states(unstable_2_fps)
-    #labels for each steady state
-    labels = list(range(0,5))
-    # file that contains precalculated separatricies(speeds up program time)
-    filename = 'sep_lists_analytic'
-    read_data = True 
-    if not read_data:
-        # calculates the 2-D and 11-D separatrix for each path (using bisection and analytic methods)
-        # record time that it takes to calculate generate separatricies 
-        sep_list_2D, sep_list_11D = TimeAndState(labels,stein_steady_states,mu,M,filename)
-    else:
-       # reads pre-generated analytic sepatrix data from the file 'sep_lists_analytic'
-       sep_list_2D, sep_list_11D = FastTimeAndState(labels,stein_steady_states,mu,M,filename)
-       print(sep_list_2D)
-
-    sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states)
-
-    make_food_web(sep_list_2D, sep_list_11D)
-    return
-
-    ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D, verbose=False)
-    ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, verbose=False)
-    total_hamming_distance = 0
-    print('NORMED ------------------------------------')
-    for key in ordered_paths_2D:
-        print(key)
-        print('  ', ordered_paths_2D[key])
-        print('  ', ordered_paths_11D[key])
-        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
-        print('   hamming distance:', hd)
-        total_hamming_distance += hd
-    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
-    print(); print()
-    print('SEP ------------------------------------')
-    ordered_paths_2D, path_lengths_2D = navigate_between_fps(sep_matrix_2D, verbose=False)
-    ordered_paths_11D, path_lengths_11D = navigate_between_fps(sep_matrix_11D, verbose=False)
-    total_hamming_distance = 0
-    for key in ordered_paths_2D:
-        print(key)
-        print('  ', ordered_paths_2D[key])
-        print('  ', ordered_paths_11D[key])
-        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
-        print('   hamming distance:', hd)
-        total_hamming_distance += hd
-    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
 
 
-    return
-    # print the norm and sep dictionaries with keys and values
-    norm11,norm2 = sortedpathdic(norm_matrix_11D,norm_matrix_2D)
-    sep11, sep2 = sortedpathdic(sep_matrix_11D,sep_matrix_2D)
-    # returns only the keys for the 11d separatrix,2d separatrix, 11d norm, and 2d norm 
-    ntuit11sd,ntuit2sd,ntuit11nd,ntuit2nd = justkeys(sep11,sep2,norm11,norm2)
-    print(norm11[-1])
-    print(ntuit11nd[0])
-    print(norm2[-1])
-    print(ntuit2nd[0])
-    return
 
-    #finds the hamming distance for the norm and the separatrix paths
-    for i in range(len(ntuit11sd)):
-        lntuit11d = ntuit11sd[i]
-        lntuit2d = ntuit2sd[i]
-        a = lntuit11d[0]
-        hd = hamming_distance(lntuit11d,lntuit2d)
-        print('the hamming distance for the separatrices values between {} and {} is {}'.format(a[0],a[len(lntuit11d[0])-1],hd))
-
-    for i in range(len(ntuit11nd)):
-        lntuit11d = ntuit11nd[i]
-        lntuit2d = ntuit2nd[i]
-        a = lntuit11d[0]
-        hd = hamming_distance(lntuit11d,lntuit2d)
-
-        print('the hamming distance for the norm values between {} and {} is {}'.format(a[0],a[len(lntuit11d[0])-1],hd))
-    
 
 if __name__ == "__main__":
-    main()
+    main() 
