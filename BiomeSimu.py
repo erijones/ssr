@@ -29,6 +29,7 @@ from itertools import islice
 import this
 #import cProfile
 import cProfile, pstats, io
+#@profile
 #from profilestats import profile
 
 
@@ -163,16 +164,55 @@ def SSR(xa,xb,mu,M):
     """This function performs a steady state reduction by taking in the
     relevant parameters, then performing the relevant operations, and finally
     returning the steady state reduced forms of the parameters "nu" and "L" """
-   
-    new_mu_a = ((np.dot(xa, mu))/sum(xa))
-    new_mu_b = ((np.dot(xb, mu))/sum(xb))
-    new_M_aa = np.dot(xa.T,np.dot(M,xa)) / sum(xa)
-    new_M_ab = np.dot(xa.T,np.dot(M,xb)) / sum(xa)
-    new_M_ba = np.dot(xb.T,np.dot(M,xa)) / sum(xb)
-    new_M_bb = np.dot(xb.T,np.dot(M,xb)) / sum(xb)
+    
+    
+    if True:
+        new_mu_a = ((np.dot(xa, mu))/sum(xa))
+        new_mu_b = ((np.dot(xb, mu))/sum(xb))
+        new_M_aa = np.dot(xa.T,np.dot(M,xa)) / sum(xa)
+        new_M_ab = np.dot(xa.T,np.dot(M,xb)) / sum(xa)
+        new_M_ba = np.dot(xb.T,np.dot(M,xa)) / sum(xb)
+        new_M_bb = np.dot(xb.T,np.dot(M,xb)) / sum(xb)
+            
         
+        
+        
+        
+        #nu is the steady-state reduced mu
+        nu = np.array([new_mu_a,
+                      new_mu_b])
+        #L is the steady-state reduced M
+        L = np.array([[new_M_aa, new_M_ab],
+                     [new_M_ba, new_M_bb]])
+        print('--------------------ORIGINAL-------------------------')
+        print(nu,L)
+
     
     
+    new_mu_a = np.dot(np.dot(np.diag(xa), xa), mu)/(np.linalg.norm(xa)**2)
+    new_mu_b = np.dot(np.dot(np.diag(xb), xb), mu)/(np.linalg.norm(xb)**2)
+
+    new_M_aa = np.dot(np.dot(np.diag(xa), xa).T, np.dot(M, xa))/(np.linalg.norm(xa)**2)
+    new_M_bb = np.dot(np.dot(np.diag(xb), xb).T, np.dot(M, xb))/(np.linalg.norm(xb)**2)
+    ya = xa/np.linalg.norm(xa)
+    yb = xb/np.linalg.norm(xb)
+    numerator = sum([sum([ M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j]) *sum([ya[i]*yb[k]**2 - yb[i]*ya[k]*yb[k] for k in range(len(xa))]) for j in range(len(xa))]) for i in range(len(xa))])
+    denom = (sum([ya[i]**2 for i in range(len(xa))])
+            * sum([yb[i]**2 for i in range(len(xa))])
+            - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
+    new_M_ab = numerator*np.linalg.norm(xb)/denom
+
+    ya = xa/np.linalg.norm(xa)
+    yb = xb/np.linalg.norm(xb)
+    numerator = sum([sum([
+                M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j])
+                *sum([yb[i]*ya[k]**2 - ya[i]*ya[k]*yb[k] for k in
+                    range(len(xa))])
+        for j in range(len(xa))]) for i in range(len(xa))])
+    denom = (sum([ya[i]**2 for i in range(len(xa))])
+            * sum([yb[i]**2 for i in range(len(xa))])
+            - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
+    new_M_ba = numerator*np.linalg.norm(xa)/denom
     
     
     #nu is the steady-state reduced mu
@@ -181,6 +221,10 @@ def SSR(xa,xb,mu,M):
     #L is the steady-state reduced M
     L = np.array([[new_M_aa, new_M_ab],
                  [new_M_ba, new_M_bb]])
+    print('--------------------NEW-------------------------')
+    print(nu,L)
+    import sys
+    sys.exit()
     return nu,L
 
 
@@ -1141,6 +1185,7 @@ def Track(Stein,UD1,UD2):
 
   
 def profile(fnc):
+    #credit https://osf.io/upav8/
     
     """A decorator that uses cProfile to profile a function"""
     
@@ -1161,6 +1206,7 @@ def profile(fnc):
 
 @profile
 def main():
+
     #in S : 0,2;in 1UD :2 --> 0,0 --> 6;in 2UD : 2 --> 0, 0 --> 25
     generateAndRead = True
     if generateAndRead :
@@ -1236,7 +1282,7 @@ def main():
             total_hamming_distance += hd
         print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
         
-
+       
 
 
 if __name__ == "__main__":
