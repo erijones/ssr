@@ -1285,7 +1285,7 @@ def CompareUnstableDirections(UD1,UD2):
 def main():
 
     #in S : 0,2;in 1UD :2 --> 0,0 --> 6;in 2UD : 2 --> 0, 0 --> 25
-    generateAndRead = True
+    generateAndRead = False
     if generateAndRead :
         read_data_from_file = None
         unstable_directions = None
@@ -1312,8 +1312,8 @@ def main():
                     import sys
                     sys.exit()
            
-    sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels = Generate_And_Save_FixedPoints(criteria[0],criteria[1],criteria[2],criteria[3])
-    trackstates = True
+        sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels = Generate_And_Save_FixedPoints(criteria[0],criteria[1],criteria[2],criteria[3])
+    trackstates = False
     if trackstates:
         Stein = None
         UD1 = None
@@ -1334,7 +1334,7 @@ def main():
 #       labellist = ['0','2']
         labellist = range(len(labels))
        
-    orderedPaths = True
+    orderedPaths = False
     if orderedPaths and generateAndRead:
     
         labellist = []
