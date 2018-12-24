@@ -184,47 +184,47 @@ def SSR(xa,xb,mu,M):
         #L is the steady-state reduced M
         L = np.array([[new_M_aa, new_M_ab],
                      [new_M_ba, new_M_bb]])
-        print('--------------------ORIGINAL-------------------------')
+
+
+    
+    if False :
+        new_mu_a = np.dot(np.dot(np.diag(xa), xa), mu)/(np.linalg.norm(xa)**2)
+        new_mu_b = np.dot(np.dot(np.diag(xb), xb), mu)/(np.linalg.norm(xb)**2)
+    
+        new_M_aa = np.dot(np.dot(np.diag(xa), xa).T, np.dot(M, xa))/(np.linalg.norm(xa)**2)
+        new_M_bb = np.dot(np.dot(np.diag(xb), xb).T, np.dot(M, xb))/(np.linalg.norm(xb)**2)
+        ya = xa/np.linalg.norm(xa)
+        yb = xb/np.linalg.norm(xb)
+        numerator = sum([sum([ M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j]) *sum([ya[i]*yb[k]**2 - yb[i]*ya[k]*yb[k] for k in range(len(xa))]) for j in range(len(xa))]) for i in range(len(xa))])
+        denom = (sum([ya[i]**2 for i in range(len(xa))])
+                * sum([yb[i]**2 for i in range(len(xa))])
+                - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
+        new_M_ab = numerator*np.linalg.norm(xb)/denom
+    
+        ya = xa/np.linalg.norm(xa)
+        yb = xb/np.linalg.norm(xb)
+        numerator = sum([sum([
+                    M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j])
+                    *sum([yb[i]*ya[k]**2 - ya[i]*ya[k]*yb[k] for k in
+                        range(len(xa))])
+            for j in range(len(xa))]) for i in range(len(xa))])
+        denom = (sum([ya[i]**2 for i in range(len(xa))])
+                * sum([yb[i]**2 for i in range(len(xa))])
+                - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
+        new_M_ba = numerator*np.linalg.norm(xa)/denom
+        
+        
+        #nu is the steady-state reduced mu
+        nu = np.array([new_mu_a,
+                      new_mu_b])
+        #L is the steady-state reduced M
+        L = np.array([[new_M_aa, new_M_ab],
+                     [new_M_ba, new_M_bb]])
+        print('--------------------NEW-------------------------')
         print(nu,L)
-
+    #    import sys
+    #    sys.exit()
     
-    
-    new_mu_a = np.dot(np.dot(np.diag(xa), xa), mu)/(np.linalg.norm(xa)**2)
-    new_mu_b = np.dot(np.dot(np.diag(xb), xb), mu)/(np.linalg.norm(xb)**2)
-
-    new_M_aa = np.dot(np.dot(np.diag(xa), xa).T, np.dot(M, xa))/(np.linalg.norm(xa)**2)
-    new_M_bb = np.dot(np.dot(np.diag(xb), xb).T, np.dot(M, xb))/(np.linalg.norm(xb)**2)
-    ya = xa/np.linalg.norm(xa)
-    yb = xb/np.linalg.norm(xb)
-    numerator = sum([sum([ M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j]) *sum([ya[i]*yb[k]**2 - yb[i]*ya[k]*yb[k] for k in range(len(xa))]) for j in range(len(xa))]) for i in range(len(xa))])
-    denom = (sum([ya[i]**2 for i in range(len(xa))])
-            * sum([yb[i]**2 for i in range(len(xa))])
-            - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
-    new_M_ab = numerator*np.linalg.norm(xb)/denom
-
-    ya = xa/np.linalg.norm(xa)
-    yb = xb/np.linalg.norm(xb)
-    numerator = sum([sum([
-                M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j])
-                *sum([yb[i]*ya[k]**2 - ya[i]*ya[k]*yb[k] for k in
-                    range(len(xa))])
-        for j in range(len(xa))]) for i in range(len(xa))])
-    denom = (sum([ya[i]**2 for i in range(len(xa))])
-            * sum([yb[i]**2 for i in range(len(xa))])
-            - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
-    new_M_ba = numerator*np.linalg.norm(xa)/denom
-    
-    
-    #nu is the steady-state reduced mu
-    nu = np.array([new_mu_a,
-                  new_mu_b])
-    #L is the steady-state reduced M
-    L = np.array([[new_M_aa, new_M_ab],
-                 [new_M_ba, new_M_bb]])
-    print('--------------------NEW-------------------------')
-    print(nu,L)
-    import sys
-    sys.exit()
     return nu,L
 
 
@@ -870,16 +870,17 @@ def navigate_between_fps(sep_matrix, verbose, labels,hrz):
     path. Also returns a dictionary path_lengths that takes a path (e.g.
     path_lengths['ADCE']) and returns the length of that path """
     ss_names = labels
-   
     path_lengths = {}
     ordered_paths = {}
     
     
 
     starts_ends = itertools.permutations(ss_names, 2)
+
     
     for start_end in starts_ends:
         if True : #start_end[0] == '3' :
+           
 
             # start_end looks like ('A', 'B'); start_end_str looks like 'AB'
             start_end_str = ''.join(start_end)
@@ -898,12 +899,13 @@ def navigate_between_fps(sep_matrix, verbose, labels,hrz):
             for within_path in within_paths:
                 within_path = list(within_path)
             
+            
                 full_path = [start_end[0]] + within_path + [start_end[-1]]
-    #            print(full_path)
+#                print(full_path)
                 full_path_str = ''.join(full_path)
                 full_path_indices = [ss_names.index(val) for val in full_path]
                 
-    #            print(full_path_indices)
+#                print(full_path_indices)
                 full_path_distance = 0
                 
                 for i in range(len(full_path_indices)-1):
@@ -1101,7 +1103,7 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
     stein_steady_states = get_stein_steady_states(unstable_2_fps)
     # track changes in figures
     if not stein:
-        labelStates = {0:list(range(0,2)),1:list(range(0,8)),2:list(range(1,31))}
+        labelStates = {0:list(range(0,2)),1:list(range(0,8)),2:list(range(0,30))}
         labels = labelStates.get(UD)
         #file that contains precalculated separatricies(speeds up program time)
         filename = 'sep_lists_analytic{}'.format(UD)
@@ -1118,7 +1120,8 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
            # reads pre-generated analytic sepatrix data from the file 'sep_lists_analytic'
            print('Pulling nss states for {} states from files'.format(UD))
            sep_list_2D, sep_list_11D = FastTimeAndState(labels,stable_fps,mu,M,filename)
-           make_food_web(sep_list_2D, sep_list_11D,labels)
+           if generateFigure:
+               make_food_web(sep_list_2D, sep_list_11D,labels)
         sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stable_fps)
 #        print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
 #        print(sep_matrix_2D)
@@ -1204,7 +1207,81 @@ def profile(fnc):
 
     return inner
 
-@profile
+def hammingLists(ordered_paths_2D,ordered_paths_11D,inpt): 
+    ##2 UNSTABLE DIRECTIONS 
+    
+    #686: 25 -> 0 
+    #25: 0 -> 25
+    #43: 6 -> 0
+    #6: 0 -> 6
+    
+    uniStableDict = { 'Dual Unstable1':686,'Dual Unstable2':25,'Unitary Unstable1':43, 'Unitary Unstable2':6,'Stein Unstable1':2,'Stein Unstable2':9 }
+    filename = 'OrderedLists{}.txt'.format(inpt) 
+
+    count = 0
+    total_hamming_distance = 0
+    print('NORMEDss ------------------------------------')
+    for key in ordered_paths_2D:
+        count = count + 1
+        if count == uniStableDict.get(inpt):
+            orderedDict = {'Key2D':ordered_paths_2D[key],'Key11D':ordered_paths_2D[key]}
+            with open(filename, 'wb') as file:
+                file.write(pickle.dumps(orderedDict)) 
+#            with open(filename, "rb") as f:
+#                myobj = pickle.load(f)
+#    
+#            print(myobj)
+
+
+#                print(count)
+#                print('  ', ordered_paths_2D[key])
+#                print('  ', ordered_paths_11D[key])
+#                hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
+#                print('   hamming distance:', hd)
+#                total_hamming_distance += hd
+#                print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
+#                print(); print()
+
+
+#    total_hamming_distance = 0
+#    print('SEP ----------------------------------------')
+#    for key in ordered_paths_2D:
+#        print(key)
+#        print('  ', ordered_paths_2D[key])
+#        print('  ', ordered_paths_11D[key])
+#        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
+#        print('   hamming distance:', hd)
+#        total_hamming_distance += hd
+#    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
+
+
+def CompareUnstableDirections(UD1,UD2):
+    
+    filenamesDict = {2:['OrderedListsDual Unstable1.txt','OrderedListsDual Unstable2.txt'],1: ['OrderedListsUnitary Unstable1.txt','OrderedListsUnitary Unstable2.txt'],'S' : ['OrderedListsStein Unstable1.txt','OrderedListsStein Unstable2.txt']}
+    Flst = [filenamesDict.get(UD1),filenamesDict.get(UD2)]
+    flattenFlst = [item for sublist in Flst for item in sublist]
+    for i in range(len(flattenFlst)):
+        filenames = flattenFlst[i]
+#        filename = filenames[i]
+#        print(filename)
+        with open(filenames, "rb") as f:
+            myobj = pickle.load(f)
+            print('**************************************')
+            print('**************************************')
+            print('**************************************')
+            print('**************************************')
+            print(myobj)
+            print('**************************************')
+            print('**************************************')
+            print('**************************************')
+            print('**************************************')
+            
+        
+
+#def instateProfile(Profile):
+#    if Profile:
+#        @profile
+        
 def main():
 
     #in S : 0,2;in 1UD :2 --> 0,0 --> 6;in 2UD : 2 --> 0, 0 --> 25
@@ -1219,17 +1296,24 @@ def main():
         criteria = [read_data_from_file ,unstable_directions,stein_states,generateAndRead]
         #CONTROL COMMANDS FOR GENERATING DATA
         ## 0 : generate stein states
-        ## 1 : pull stein states from file
+        ## 1 : save stein states from file
         ## 2 : generate UD0 states
         ## 3 : generate UD1 states
         ## 4 : generate UD2 states
         ## 5 : save UD0 states
         ## 6 : save UD1 states
         ## 7 : save UD2 states
+        inpt = 6
+        safetyOn = True
         for i in range(len(criteria)):
-            criteria[i] = options[optionInput[0]][i]
-        sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels = Generate_And_Save_FixedPoints(criteria[0],criteria[1],criteria[2],criteria[3])
-    trackstates = False
+            criteria[i] = options[optionInput[inpt]][i]
+            if safetyOn :
+                if inpt in (0,2,3,4) :
+                    import sys
+                    sys.exit()
+           
+    sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels = Generate_And_Save_FixedPoints(criteria[0],criteria[1],criteria[2],criteria[3])
+    trackstates = True
     if trackstates:
         Stein = None
         UD1 = None
@@ -1245,7 +1329,7 @@ def main():
         optionInput = ['01','02','12','0S','1S','2S']
         criteria = [Stein,UD1,UD2]
         for i in range(len(criteria)):
-            criteria[i] = options[optionInput[4]][i]
+            criteria[i] = options[optionInput[2]][i]
         Track(criteria[0],criteria[1],criteria[2])
 #       labellist = ['0','2']
         labellist = range(len(labels))
@@ -1256,32 +1340,40 @@ def main():
         labellist = []
         labellist = list(map(str, labels))
         
-        hrz = 3
+        hrz = 2
         ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D, False,labellist,hrz)
         ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, False,labellist,hrz) 
+        # 0(S) = 6(U1) = 25(U2)
+        # 2(S) = 0(U1) = 0(U2)
+        ##CONTROL COMMANDS 
+        ## (*) equivalent path 1
+        ## (**) equivalent path 2
+        ## 0 :  Save and load 25 - > 0 (*)
+        ## 1 :  Save and load 0 - > 25 (**) 
+        ## 2 :  Save and load 6 - > 0 (*)
+        ## 3 :  Save and load 0 - > 6 (**)
+        ## 4 :  Save and load 0 - > 2 (*)
+        ## 5 :  Save and load 2 - > 0 (**)
+        control = 3
+        inptlist = ['Dual Unstable1','Dual Unstable2','Unitary Unstable1','Unitary Unstable2','Stein Unstable1','Stein Unstable2']
+        if control in (0,1) and inpt != 7:
+            print('Check inpt variable and control variable')
+            import sys
+            sys.exit()
+        if control in (2,3) and inpt != 6:
+            print('Check inpt variable and control variable')
+            import sys
+            sys.exit()
+        if control in (4,5) and inpt != 1:
+            print('Check inpt variable and control variable')
+            import sys
+            sys.exit()
+        hammingLists(ordered_paths_2D,ordered_paths_11D,inptlist[control])
         
-        total_hamming_distance = 0
-        print('NORMEDss ------------------------------------')
-        for key in ordered_paths_2D:
-            print(key)
-            print('  ', ordered_paths_2D[key])
-            print('  ', ordered_paths_11D[key])
-            hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
-            print('   hamming distance:', hd)
-            total_hamming_distance += hd
-        print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
-        print(); print()
-        total_hamming_distance = 0
-        print('SEP ----------------------------------------')
-        for key in ordered_paths_2D:
-            print(key)
-            print('  ', ordered_paths_2D[key])
-            print('  ', ordered_paths_11D[key])
-            hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
-            print('   hamming distance:', hd)
-            total_hamming_distance += hd
-        print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
         
+#       
+        CompareUnstableDirections(2,1)
+
        
 
 
