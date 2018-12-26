@@ -1207,9 +1207,8 @@ def profile(fnc):
 
     return inner
 
-def hammingLists(ordered_paths_2D,ordered_paths_11D,inpt): 
+def hammingLists(ordered_paths_2D,ordered_paths_11D,inpt,All): 
     ##2 UNSTABLE DIRECTIONS 
-    
     #686: 25 -> 0 
     #25: 0 -> 25
     #43: 6 -> 0
@@ -1219,7 +1218,6 @@ def hammingLists(ordered_paths_2D,ordered_paths_11D,inpt):
     filename = 'OrderedLists{}.txt'.format(inpt) 
 
     count = 0
-    total_hamming_distance = 0
     print('NORMEDss ------------------------------------')
     for key in ordered_paths_2D:
         count = count + 1
@@ -1227,32 +1225,30 @@ def hammingLists(ordered_paths_2D,ordered_paths_11D,inpt):
             orderedDict = {'Key2D':ordered_paths_2D[key],'Key11D':ordered_paths_2D[key]}
             with open(filename, 'wb') as file:
                 file.write(pickle.dumps(orderedDict)) 
-#            with open(filename, "rb") as f:
-#                myobj = pickle.load(f)
-#    
-#            print(myobj)
+
+def OLists(ordered_paths_2D,ordered_paths_11D):
+    total_hamming_distance = 0
+    print('NORMEDss ------------------------------------')
+    for key in ordered_paths_2D:
+        print('  ', ordered_paths_2D[key])
+        print('  ', ordered_paths_11D[key])
+        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
+        print('   hamming distance:', hd)
+        total_hamming_distance += hd
+        print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
+        print(); print()
 
 
-#                print(count)
-#                print('  ', ordered_paths_2D[key])
-#                print('  ', ordered_paths_11D[key])
-#                hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
-#                print('   hamming distance:', hd)
-#                total_hamming_distance += hd
-#                print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
-#                print(); print()
-
-
-#    total_hamming_distance = 0
-#    print('SEP ----------------------------------------')
-#    for key in ordered_paths_2D:
-#        print(key)
-#        print('  ', ordered_paths_2D[key])
-#        print('  ', ordered_paths_11D[key])
-#        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
-#        print('   hamming distance:', hd)
-#        total_hamming_distance += hd
-#    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
+    total_hamming_distance = 0
+    print('SEP ----------------------------------------')
+    for key in ordered_paths_2D:
+        print(key)
+        print('  ', ordered_paths_2D[key])
+        print('  ', ordered_paths_11D[key])
+        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
+        print('   hamming distance:', hd)
+        total_hamming_distance += hd
+    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
 
 
 def CompareUnstableDirections(UD1,UD2):
@@ -1285,7 +1281,7 @@ def CompareUnstableDirections(UD1,UD2):
 def main():
 
     #in S : 0,2;in 1UD :2 --> 0,0 --> 6;in 2UD : 2 --> 0, 0 --> 25
-    generateAndRead = False
+    generateAndRead = True
     if generateAndRead :
         read_data_from_file = None
         unstable_directions = None
@@ -1369,10 +1365,18 @@ def main():
             import sys
             sys.exit()
         hammingLists(ordered_paths_2D,ordered_paths_11D,inptlist[control])
-        
-        
-#       
         CompareUnstableDirections(2,1)
+        
+        
+        
+    AllLists = True 
+    if AllLists and generateAndRead:
+        labellist = []
+        labellist = list(map(str, labels))
+        hrz = 2
+        ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D, False,labellist,hrz)
+        ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, False,labellist,hrz) 
+        OLists(ordered_paths_2D,ordered_paths_11D)
 
        
 
