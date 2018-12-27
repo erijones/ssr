@@ -26,7 +26,6 @@ warnings.filterwarnings("ignore")
 import operator
 import time
 from itertools import islice
-import this
 #import cProfile
 import cProfile, pstats, io
 #@profile
@@ -164,20 +163,15 @@ def SSR(xa,xb,mu,M):
     """This function performs a steady state reduction by taking in the
     relevant parameters, then performing the relevant operations, and finally
     returning the steady state reduced forms of the parameters "nu" and "L" """
-    
-    
-    if True:
+
+    if False: # old SSR
         new_mu_a = ((np.dot(xa, mu))/sum(xa))
         new_mu_b = ((np.dot(xb, mu))/sum(xb))
         new_M_aa = np.dot(xa.T,np.dot(M,xa)) / sum(xa)
         new_M_ab = np.dot(xa.T,np.dot(M,xb)) / sum(xa)
         new_M_ba = np.dot(xb.T,np.dot(M,xa)) / sum(xb)
         new_M_bb = np.dot(xb.T,np.dot(M,xb)) / sum(xb)
-            
-        
-        
-        
-        
+
         #nu is the steady-state reduced mu
         nu = np.array([new_mu_a,
                       new_mu_b])
@@ -185,46 +179,37 @@ def SSR(xa,xb,mu,M):
         L = np.array([[new_M_aa, new_M_ab],
                      [new_M_ba, new_M_bb]])
 
+    if True: # new SSR
+        new_mu_a = np.dot(np.dot(np.diag(xa), xa), mu)/(np.linalg.norm(xa)**2)
+        new_mu_b = np.dot(np.dot(np.diag(xb), xb), mu)/(np.linalg.norm(xb)**2)
 
-#    
-#    if False :
-#        new_mu_a = np.dot(np.dot(np.diag(xa), xa), mu)/(np.linalg.norm(xa)**2)
-#        new_mu_b = np.dot(np.dot(np.diag(xb), xb), mu)/(np.linalg.norm(xb)**2)
-#    
-#        new_M_aa = np.dot(np.dot(np.diag(xa), xa).T, np.dot(M, xa))/(np.linalg.norm(xa)**2)
-#        new_M_bb = np.dot(np.dot(np.diag(xb), xb).T, np.dot(M, xb))/(np.linalg.norm(xb)**2)
-#        ya = xa/np.linalg.norm(xa)
-#        yb = xb/np.linalg.norm(xb)
-#        numerator = sum([sum([ M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j]) *sum([ya[i]*yb[k]**2 - yb[i]*ya[k]*yb[k] for k in range(len(xa))]) for j in range(len(xa))]) for i in range(len(xa))])
-#        denom = (sum([ya[i]**2 for i in range(len(xa))])
-#                * sum([yb[i]**2 for i in range(len(xa))])
-#                - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
-#        new_M_ab = numerator*np.linalg.norm(xb)/denom
-#    
-#        ya = xa/np.linalg.norm(xa)
-#        yb = xb/np.linalg.norm(xb)
-#        numerator = sum([sum([
-#                    M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j])
-#                    *sum([yb[i]*ya[k]**2 - ya[i]*ya[k]*yb[k] for k in
-#                        range(len(xa))])
-#            for j in range(len(xa))]) for i in range(len(xa))])
-#        denom = (sum([ya[i]**2 for i in range(len(xa))])
-#                * sum([yb[i]**2 for i in range(len(xa))])
-#                - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
-#        new_M_ba = numerator*np.linalg.norm(xa)/denom
-#        
-#        
-#        #nu is the steady-state reduced mu
-#        nu = np.array([new_mu_a,
-#                      new_mu_b])
-#        #L is the steady-state reduced M
-#        L = np.array([[new_M_aa, new_M_ab],
-#                     [new_M_ba, new_M_bb]])
-#        print('--------------------NEW-------------------------')
-#        print(nu,L)
-    #    import sys
-    #    sys.exit()
-    
+        nu = np.array([new_mu_a, new_mu_b])
+
+        new_M_aa = np.dot(np.dot(np.diag(xa), xa).T, np.dot(M, xa))/(np.linalg.norm(xa)**2)
+        new_M_bb = np.dot(np.dot(np.diag(xb), xb).T, np.dot(M, xb))/(np.linalg.norm(xb)**2)
+
+        ya = xa/np.linalg.norm(xa)
+        yb = xb/np.linalg.norm(xb)
+        numerator = sum([sum([M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j])
+                              *sum([ya[i]*yb[k]**2 - yb[i]*ya[k]*yb[k]
+                              for k in range(len(xa))]) for j in range(len(xa))])
+                         for i in range(len(xa))])
+        denom = (sum([ya[i]**2 for i in range(len(xa))])
+                * sum([yb[i]**2 for i in range(len(xa))])
+                - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
+        new_M_ab = numerator*np.linalg.norm(xb)/denom
+
+        numerator = sum([sum([M[i][j]*(ya[i]*yb[j] + yb[i]*ya[j])
+                              *sum([yb[i]*ya[k]**2 - ya[i]*ya[k]*yb[k]
+                              for k in range(len(xa))])
+                         for j in range(len(xa))]) for i in range(len(xa))])
+        denom = (sum([ya[i]**2 for i in range(len(xa))])
+                * sum([yb[i]**2 for i in range(len(xa))])
+                - sum([ya[i]*yb[i] for i in range(len(xa))])**2)
+        new_M_ba = numerator*np.linalg.norm(xa)/denom
+
+        L = np.array([[new_M_aa, new_M_ab], [new_M_ba, new_M_bb]])
+
     return nu,L
 
 
@@ -448,7 +433,6 @@ def TimeAndState(labels,stein_steady_states,mu,M,filename):
     for i,j in combos:
         if True:
 #        if i == a[0] and j == a[1]: 
-            print(i,j)
             # choose a start and end point (11D)
             ssa_11 = stein_steady_states[i]
             ssb_11 = stein_steady_states[j]
@@ -535,15 +519,13 @@ def NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states):
     #arrays intialized for part1.) (look above for more information)
     sep_matrix_11D = np.array([])
     sep_matrix_2D = np.array([])
-   
 
-        
     #arrays intialized for part2.) (look above for more information)
     norm_matrix_2D = np.array([])
     norm_matrix_11D = np.array([])
-    
+
     index_matrix= np.array([])
-    
+
     #11-D 
     if True:
         for i in a:#a:
@@ -573,8 +555,7 @@ def NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states):
     if True:
         for i in a: #a:
             for j in a: #a:
-                if i != j : 
-                    
+                if i != j :
                     for N, sep_list in zip([2, 11], [sep_list_2D]):
 #                        print('sep list 2d')
 #                        print(sep_list)
@@ -586,18 +567,18 @@ def NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states):
                         elif isinstance(p,int):
 #                            print('int p is')
 #                            print(p)
-                            sep_matrix_2D = np.append(sep_matrix_2D, .0000000001)
+                            sep_matrix_2D = np.append(sep_matrix_2D, float(p))
                             norm = p * np.linalg.norm(ssb - ssa)
                             norm_matrix_2D = np.append(sep_matrix_2D,norm) 
                         else:
                             sep_matrix_2D = np.append(sep_matrix_2D, None)
                             norm_matrix_2D = np.append(norm_matrix_2D,None)
-                elif  i == j : 
+                elif  i == j :
                     p=0
                     sep_matrix_2D = np.append(sep_matrix_2D,p)
                     norm_matrix_2D = np.append(norm_matrix_2D,p)
-    
-    
+
+
     ##reformat both arrays into  numss x numss matricies:
 
     #arrays for part1.) (look above for more information)                  
@@ -694,7 +675,7 @@ def make_food_web(sep_list_2D, sep_list_11D,labels):
     plt.axis([-edge, edge, -edge, edge])
     plt.axis('off')
     plt.tight_layout()
-    filename = 'figs/example_food_web_5.pdf'
+    filename = 'figs/example_food_web_7.pdf'
     plt.savefig(filename)
     print('saved fig to {}'.format(filename))
     return                
@@ -1129,7 +1110,6 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
 #        print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
         return sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels   
     else:
-#        
          labelStates = {0:list(range(0,5))}
          labels = labelStates.get(UD)
          print('Printing stein steady states')
@@ -1153,6 +1133,8 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
 ##         print(sep_matrix_2D)
 ##         print(sep_matrix_11D)
 #         print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
+         print('MY LIST')
+         print(sep_list_2D)
          sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states)
          return sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels
 
@@ -1291,7 +1273,7 @@ def main():
         read_data_from_file = None
         unstable_directions = None
         stein_states = None
-        generateFigure = False
+        generateFigure = True
         options = {'generate stein states':[False,0,True,None], 'pull stein states from file':[True,0,True,generateFigure],'generate UD0 states':[False,0,False,None],'generate UD1 states':[False,1,False,None],'generate UD2 states':[False,2,False,None],'read UD0 states':[True,0,False,generateFigure],'read UD1 states':[True,1,False,generateFigure],'read UD2 states':[True,2,False,generateFigure] }
         optionInput = ['generate stein states','pull stein states from file','generate UD0 states','generate UD1 states','generate UD2 states','read UD0 states','read UD1 states','read UD2 states']
         criteria = [read_data_from_file ,unstable_directions,stein_states,generateAndRead]
@@ -1304,8 +1286,8 @@ def main():
         ## 5 : save UD0 states
         ## 6 : save UD1 states
         ## 7 : save UD2 states
-        inpt = 1
-        safetyOn = True
+        inpt = 3
+        safetyOn = False
         for i in range(len(criteria)):
             criteria[i] = options[optionInput[inpt]][i]
             if safetyOn :
@@ -1314,6 +1296,9 @@ def main():
                     sys.exit()
            
         sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels = Generate_And_Save_FixedPoints(criteria[0],criteria[1],criteria[2],criteria[3])
+
+        print(sep_matrix_2D)
+        print(sep_matrix_11D)
     trackstates = True
     if trackstates:
         Stein = None
@@ -1335,7 +1320,7 @@ def main():
 #       labellist = ['0','2']
         labellist = range(len(labels))
        
-    orderedPaths = False
+    orderedPaths = False 
     if orderedPaths and generateAndRead:
     
         labellist = []
@@ -1370,7 +1355,7 @@ def main():
             import sys
             sys.exit()
         hammingLists(ordered_paths_2D,ordered_paths_11D,inptlist[control])
-        CompareUnstableDirections(2,1)
+        #CompareUnstableDirections(2,1)
         
         
         
