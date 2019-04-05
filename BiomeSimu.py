@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -419,6 +420,30 @@ def bisection(xa,xb,eps, mu, M):
     return po
 
 
+
+def bisection2D(xa,xb,eps, mu, M):
+    """For the purposes of comparing the speed of the bisection method with the orginal and the new system"""
+    p1 = 0
+    p2 = 1
+    while np.linalg.norm(p2 - p1) > eps:
+        po = (p2 + p1)/2.0
+        point = get_point_on_line(xa, xb, po)
+        val = get_steady_state(point,mu,M)
+        if goes_to_xa(xa,xb,val) and not goes_to_xb(xa,xb,val):
+            p1 = po
+        elif not goes_to_xa(xa,xb,val) and goes_to_xb(xa,xb,val):
+            p2 = po
+        else:
+            po = get_separatrix_point(xa, xb, mu, M, 201)
+            break
+    verbose = True
+    if verbose:
+        N = len(mu)
+        if isinstance(po, float):
+            print('    {}D separatrix at p={}'.format(N, po))
+
+    return po
+
 def TimeAndState(labels,stein_steady_states,mu,M,filename):
     sep_list_2D = {}
     sep_list_11D = {}
@@ -452,16 +477,16 @@ def TimeAndState(labels,stein_steady_states,mu,M,filename):
             temp_separatrix_2D = get_analytic_separatrix(.0001, nu, L)
             # record time
             analytic_time_2D += time.time() - t0
-            ## calculate 2D sepatrices using the bisection method
-            #steady states in 2D
-            #ssa_2 = np.array([1, 0])
-            #ssb_2 = np.array([0, 1])
-            ##start clock
-            #t0 = time.time()
-            ## get 2D sepatrices using the bisection method
-            #bisection(ssa_2, ssb_2, .0001, nu, L)
-            ##record time
-            #bisect_time_2D += time.time() - t0
+            # calculate 2D sepatrices using the bisection method
+#            steady states in 2D
+            ssa_2 = np.array([1, 0])
+            ssb_2 = np.array([0, 1])
+            #start clock
+            t0 = time.time()
+            # get 2D sepatrices using the bisection method
+            bisection2D(ssa_2, ssb_2, .0001, nu, L)
+            #record time
+            bisect_time_2D += time.time() - t0
             # record  2D sepatricies using into the array sep_list_2D (via analytic method )
             # record  11D sepatricies using into the array sep_list_11D (via bisection method )
             sep_list_2D[(i, j)] = temp_separatrix_2D
@@ -607,7 +632,7 @@ def make_food_web(sep_list_2D, sep_list_11D,labels):
     # xx and yy are locations of these circles (to be plotted)
     circs = []; xx = []; yy = [];
     circ_xx = []; circ_yy = []
-    #print('colorwheel is', wheels[1][0].get_color())
+    print('colorwheel is', wheels[1][0].get_color())
 #    labels = list(range(0,len(sep_list_2D)))
     for i in range(len(labels)):
         xx.append(np.sin(2*np.pi*i/len(labels)))
@@ -648,8 +673,9 @@ def make_food_web(sep_list_2D, sep_list_11D,labels):
                             markersize=20, zorder=5,
                             markerfacecolor='none')
                 if dim == '2D':
-                    plt.plot(point[0], point[1], marker='s', color='black',
-                            markersize=9, zorder=5, markerfacecolor='none')
+                    continue
+#                    plt.plot(point[0], point[1], marker='s', color='black',
+#                            markersize=9, zorder=5, markerfacecolor='none')
                 curve_type = 'arc3,rad=0'
                 if dim == '11D':
                     thickness = 6
@@ -668,7 +694,7 @@ def make_food_web(sep_list_2D, sep_list_11D,labels):
                 # make arrows pointing from one circle to another
                 ax.plot([xx[i],point[0]], [yy[i], point[1]],
                         color=outer_color, linewidth=thickness, zorder=zorder,
-                        solid_capstyle='butt')
+                        solid_capstyle='butt',alpha = .1)
 
     edge = (1+circ_size)*1.2
     ax.set_aspect('equal')
@@ -844,6 +870,32 @@ def red_sum(allpaths,separtrix_matrix):
         cchunksumm = [sum_list[x:x+len(paths)] for x in range(0, len(sum_list), len(paths))]
     return cchunksumm
 
+def sep_check(filename1, filename2):
+
+  
+    with open('data/{}'.format(filename1), 'rb') as f:
+        sep_list_2D, sep_list_11D = pickle.load(f)
+#        print(sep_list_2D.get((6,3))+sep_list_2D.get((3,0)))
+#        print(sep_list_11D.get((6,3))+sep_list_11D.get((3,0)))
+#        print(sep_list_2D.get((6,4))+sep_list_2D.get((4,0)))
+#        print(sep_list_11D.get((6,4))+sep_list_11D.get((4,0)))
+        print('----------------------')
+        print(sep_list_11D.get((6,3)))
+        print(sep_list_11D.get((3,0)))
+        print('-----------------------')
+        print(sep_list_11D.get((6,4)))
+        print(sep_list_11D.get((4,0)))
+    with open('data/{}'.format(filename2), 'rb') as f:
+        print('-----------------------')
+        sep_list_2D, sep_list_11D = pickle.load(f)
+        print(sep_list_11D.get((25,15)))
+        print(sep_list_11D.get((15,0)))
+        print('-----------------------')
+        print(sep_list_11D.get((25,20)))
+        print(sep_list_11D.get((20,0))) 
+        print('-----------------------')
+
+#        print(sep_list_2D)
 def navigate_between_fps(sep_matrix, verbose, labels,hrz):
     """ Return all possible ways from one steady state to another. Returns a
     dictionary ordered_paths that takes a pair of steady states as a key (e.g.
@@ -855,8 +907,9 @@ def navigate_between_fps(sep_matrix, verbose, labels,hrz):
     ordered_paths = {}
     
     
-
+    verbose = False  
     starts_ends = itertools.permutations(ss_names, 2)
+#    print(sep_matrix)
 
     
     for start_end in starts_ends:
@@ -870,7 +923,6 @@ def navigate_between_fps(sep_matrix, verbose, labels,hrz):
             # get all possible in-between paths that start and end with start_end 
             remainder = [item for item in ss_names if item not in start_end]
        
-
             
             within_paths = []
             for N in range(hrz):
@@ -884,22 +936,28 @@ def navigate_between_fps(sep_matrix, verbose, labels,hrz):
                 full_path = [start_end[0]] + within_path + [start_end[-1]]
 #                print(full_path)
                 full_path_str = ''.join(full_path)
+#                print(full_path_str)
                 full_path_indices = [ss_names.index(val) for val in full_path]
-                
+#                print(full_path_indices)
 #                print(full_path_indices)
                 full_path_distance = 0
-                
+
                 for i in range(len(full_path_indices)-1):
                     i1 = full_path_indices[i]
                     i2 = full_path_indices[i+1]
-                
+        
+
                     try:
                         full_path_distance += sep_matrix[i1, i2]
+                        if i1 == '6' and i2 == '3':
+                            print('hello')
+#                        print(full_path_distance)
                     except TypeError:
                         full_path_distance += 1000
                 if verbose:
                     print(full_path_str, full_path_distance)
                 path_lengths[full_path_str] = full_path_distance
+                
     
                 # add the distance of possible paths from start to end in order
                 # (this is effectively 'insertion sort')
@@ -1093,8 +1151,6 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
             print('Generating ns  states for {} states'.format(UD))
             # calculates the 2-D and 11-D separatrix for each path (using bisection and analytic methods)
             # record time that it takes to calculate generate separatricies 
-#            print('**********************sep_list_2D, sep_list_11D**********************')
-#            print(sep_list_11D)
             sep_list_2D, sep_list_11D = TimeAndState(labels,stable_fps,mu,M,filename)
 #            make_food_web(sep_list_2D, sep_list_11D,labels)
         else:
@@ -1104,13 +1160,9 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
            if generateFigure:
                make_food_web(sep_list_2D, sep_list_11D,labels)
         sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stable_fps)
-#        print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
-#        print(sep_matrix_2D)
-#        print(sep_matrix_11D)
-#        print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
         return sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels   
     else:
-         labelStates = {0:list(range(0,5))}
+         labelStates = {0:list(range(1,6))}
          labels = labelStates.get(UD)
          print('Printing stein steady states')
          #file that contains precalculated separatricies(speeds up program time)
@@ -1128,13 +1180,7 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
            sep_list_2D, sep_list_11D = FastTimeAndState(labels,stein_steady_states,mu,M,filename)
            if generateFigure :
                make_food_web(sep_list_2D, sep_list_11D,labels)
-#           results(generateFoodWeb)
-#         print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
-##         print(sep_matrix_2D)
-##         print(sep_matrix_11D)
-#         print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
          print('MY LIST')
-         print(sep_list_2D)
          sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states)
          return sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels
 
@@ -1198,6 +1244,7 @@ def hammingLists(ordered_paths_2D,ordered_paths_11D,inpt):
     
     uniStableDict = { 'Dual Unstable1':686,'Dual Unstable2':25,'Unitary Unstable1':43, 'Unitary Unstable2':6,'Stein Unstable1':2,'Stein Unstable2':9 }
     filename = 'OrderedLists{}.txt'.format(inpt) 
+    print('OrderedLists{}.txt'.format(inpt))
 
     count = 0
     print('NORMEDss ------------------------------------')
@@ -1211,33 +1258,55 @@ def hammingLists(ordered_paths_2D,ordered_paths_11D,inpt):
 def OLists(norm_matrix_2D,norm_matrix_11D,sep_matrix_2D,sep_matrix_11D,labellist,hrz):
     ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D,False,labellist,hrz)
     ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, False,labellist,hrz)
+#    total_hamming_distance = 0
+#    print('NORMED ------------------------------------')
+#    for key in ordered_paths_2D:
+        #prints path seqeunces (e.g. 1221, 1222, 1223)
+#        print(key)
+#        print('  ', ordered_paths_2D[key])
+#        print('  ', path_lengths_2D[key])
+#        print('  ', ordered_paths_11D[key])
+#        print('  ', path_lengths_11D[key])
+#        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
+#        print('   hamming distance:', hd)
+#        total_hamming_distance += hd
+#    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
+#    print(); print()
+#    print('SEP ------------------------------------')
+#    ordered_paths_2D, path_lengths_2D = navigate_between_fps(sep_matrix_2D, False,labellist,hrz)
+#    ordered_paths_11D, path_lengths_11D = navigate_between_fps(sep_matrix_11D, False,labellist,hrz)
     total_hamming_distance = 0
-    print('NORMED ------------------------------------')
+    count = 0 
+    count1 = 0
+    count2 = 0
     for key in ordered_paths_2D:
-        print(key)
-        print('  ', ordered_paths_2D[key])
-        print('  ', ordered_paths_11D[key])
-        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
-        print('   hamming distance:', hd)
-        total_hamming_distance += hd
-    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
-    print(); print()
-    print('SEP ------------------------------------')
-    ordered_paths_2D, path_lengths_2D = navigate_between_fps(sep_matrix_2D, False,labellist,hrz)
-    ordered_paths_11D, path_lengths_11D = navigate_between_fps(sep_matrix_11D, False,labellist,hrz)
-    total_hamming_distance = 0
-    for key in ordered_paths_2D:
-        print(key)
-        print('  ', ordered_paths_2D[key])
-        print('  ', ordered_paths_11D[key])
-        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
-        print('   hamming distance:', hd)
-        total_hamming_distance += hd
-    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
+#        print(key)
+#        print('  ', ordered_paths_2D[key])
+#        print('  ', path_lengths_2D[key])        
+#        print('  ', ordered_paths_11D[key])
+        
+        if '60' in path_lengths_11D and count == 0:
+            print('60')
+            print('  ', path_lengths_11D['60'])
+            count = 1
+        if '610' in path_lengths_11D and count1 == 0:
+            print('610')
+            print('  ', path_lengths_11D['610'])
+            count1 = 1
+        if '630' in path_lengths_11D and count2 == 0:
+            print('630')
+            print('  ', path_lengths_11D['630'])
+            count2 = 1
+#        hd = hamming_distance(ordered_paths_2D[key], ordered_paths_11D[key])
+##        print('   hamming distance:', hd)
+##        total_hamming_distance += hd
+#    print('TOTAL HAMMING DISTANCE: {}'.format(total_hamming_distance))
 
 
 def CompareUnstableDirections(UD1,UD2):
-    
+    with open('OrderedListsUnitary Unstable1.txt', "rb") as f:
+        myobj = pickle.load(f)
+        print(myobj)
     filenamesDict = {2:['OrderedListsDual Unstable1.txt','OrderedListsDual Unstable2.txt'],1: ['OrderedListsUnitary Unstable1.txt','OrderedListsUnitary Unstable2.txt'],'S' : ['OrderedListsStein Unstable1.txt','OrderedListsStein Unstable2.txt']}
     Flst = [filenamesDict.get(UD1),filenamesDict.get(UD2)]
     flattenFlst = [item for sublist in Flst for item in sublist]
@@ -1263,7 +1332,7 @@ def resultGenerator(OrderedPaths):
 
 #def instateProfile(Profile):
 #    if Profile:
-#        @profile
+#@profile
         
 def main():
 
@@ -1273,7 +1342,7 @@ def main():
         read_data_from_file = None
         unstable_directions = None
         stein_states = None
-        generateFigure = True
+        generateFigure = False
         options = {'generate stein states':[False,0,True,None], 'pull stein states from file':[True,0,True,generateFigure],'generate UD0 states':[False,0,False,None],'generate UD1 states':[False,1,False,None],'generate UD2 states':[False,2,False,None],'read UD0 states':[True,0,False,generateFigure],'read UD1 states':[True,1,False,generateFigure],'read UD2 states':[True,2,False,generateFigure] }
         optionInput = ['generate stein states','pull stein states from file','generate UD0 states','generate UD1 states','generate UD2 states','read UD0 states','read UD1 states','read UD2 states']
         criteria = [read_data_from_file ,unstable_directions,stein_states,generateAndRead]
@@ -1286,8 +1355,8 @@ def main():
         ## 5 : save UD0 states
         ## 6 : save UD1 states
         ## 7 : save UD2 states
-        inpt = 3
-        safetyOn = False
+        inpt = 7
+        safetyOn = True
         for i in range(len(criteria)):
             criteria[i] = options[optionInput[inpt]][i]
             if safetyOn :
@@ -1297,8 +1366,6 @@ def main():
            
         sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels = Generate_And_Save_FixedPoints(criteria[0],criteria[1],criteria[2],criteria[3])
 
-        print(sep_matrix_2D)
-        print(sep_matrix_11D)
     trackstates = True
     if trackstates:
         Stein = None
@@ -1315,12 +1382,11 @@ def main():
         optionInput = ['01','02','12','0S','1S','2S']
         criteria = [Stein,UD1,UD2]
         for i in range(len(criteria)):
-            criteria[i] = options[optionInput[4]][i]
+            criteria[i] = options[optionInput[2]][i]
         Track(criteria[0],criteria[1],criteria[2])
-#       labellist = ['0','2']
         labellist = range(len(labels))
        
-    orderedPaths = False 
+    orderedPaths = True 
     if orderedPaths and generateAndRead:
     
         labellist = []
@@ -1329,18 +1395,18 @@ def main():
         hrz = 2
         ordered_paths_2D, path_lengths_2D = navigate_between_fps(norm_matrix_2D, False,labellist,hrz)
         ordered_paths_11D, path_lengths_11D = navigate_between_fps(norm_matrix_11D, False,labellist,hrz) 
-        # 0(S) = 6(U1) = 25(U2)
-        # 2(S) = 0(U1) = 0(U2)
-        ##CONTROL COMMANDS 
-        ## (*) equivalent path 1
-        ## (**) equivalent path 2
-        ## 0 :  Save and load 25 - > 0 (*)
-        ## 1 :  Save and load 0 - > 25 (**) 
-        ## 2 :  Save and load 6 - > 0 (*)
-        ## 3 :  Save and load 0 - > 6 (**)
-        ## 4 :  Save and load 0 - > 2 (*)
-        ## 5 :  Save and load 2 - > 0 (**)
-        control = 2
+##         0(S) = 6(U1) = 25(U2)
+##         2(S) = 0(U1) = 0(U2)
+        #CONTROL COMMANDS 
+        # (*) equivalent path 1f
+        # (**) equivalent path 2
+        # 0 :  Save and load 25 - > 0 (*)
+        # 1 :  Save and load 0 - > 25 (**) 
+        # 2 :  Save and load 6 - > 0 (*)
+        # 3 :  Save and load 0 - > 6 (**)
+        # 4 :  Save and load 0 - > 2 (*)
+        # 5 :  Save and load 2 - > 0 (**)
+        control = 1
         inptlist = ['Dual Unstable1','Dual Unstable2','Unitary Unstable1','Unitary Unstable2','Stein Unstable1','Stein Unstable2']
         if control in (0,1) and inpt != 7:
             print('Check inpt variable and control variable')
@@ -1355,22 +1421,78 @@ def main():
             import sys
             sys.exit()
         hammingLists(ordered_paths_2D,ordered_paths_11D,inptlist[control])
-        #CompareUnstableDirections(2,1)
+        CompareUnstableDirections(2,1)
         
         
         
-    AllLists = False 
+    AllLists = True 
     if AllLists and generateAndRead:
         labellist = []
         labellist = list(map(str, labels))
         hrz =2
         OLists(norm_matrix_2D,norm_matrix_11D,sep_matrix_2D,sep_matrix_11D,labellist,hrz)
-
-       
+#    
+#    sep_check('sep_lists_analytic1','sep_lists_analytic2')
+#    
 
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
