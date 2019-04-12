@@ -1,10 +1,5 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Sep 23 08:42:06 2018
-@author: parkershankin-clarke
-"""
 
 #import time
 
@@ -353,7 +348,7 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
     for p, went_to_xa in zip(ps, went_to_xa):
         if not went_to_xa:
             separatrix_xa = p
-            print(separatrix_xa)
+            #print(separatrix_xa)
             break
 
     for p, went_to_xb in zip(ps[::-1], went_to_xb[::-1]):
@@ -386,14 +381,14 @@ def get_separatrix_point(xa, xb, mu, M, num_points=101):
                 stein_fps = get_stein_steady_states(unstable_2_fps)
                 coexist_index = False
                 labels = ['A', 'B', 'C', 'D', 'E']
-                for i,stein_fp in enumerate(stein_fps):
-                    if np.linalg.norm(neither_val - stein_fp) < .0001:
-                        coexist_index = labels[i]
-                print('    instead {}D traj goes to steady state {}'.format(len(mu), coexist_index))
+                for i,fp in enumerate(unstable_2_fps):
+                    if np.linalg.norm(neither_val - fp) < .0001:
+                        coexist_index = i
+                print('    instead {}D traj goes to steady state {} of UD=2 fps'.format(len(mu), coexist_index))
             return separatrix_xa, separatrix_xb
         else:
             return separatrix_xa, separatrix_xb
-    
+
 def bisection(xa,xb,eps, mu, M):
     """Identify the separatrix (as a proportion p between xa and xb) for the
     system parameterized by mu and M, to eps precision, via the bisection
@@ -416,6 +411,8 @@ def bisection(xa,xb,eps, mu, M):
         N = len(mu)
         if isinstance(po, float):
             print('    {}D separatrix at p={}'.format(N, po))
+        else:
+            print('    {}D separatrix does not go to either FP for p in [{}, {}]'.format(N, po[0], po[1]))
 
     return po
 
@@ -456,63 +453,62 @@ def TimeAndState(labels,stein_steady_states,mu,M,filename):
     combos = list(itertools.combinations(range(len(labels)), 2))
     # iterate through possible paths
     for i,j in combos:
-        if True:
-#        if i == a[0] and j == a[1]: 
-            # choose a start and end point (11D)
-            ssa_11 = stein_steady_states[i]
-            ssb_11 = stein_steady_states[j]
-            ## calculate 11D separatrices using the bisection method
-            # start the clock
-            t0 = time.time()
-            # calculate the separatrices using bisection
-            temp_separatrix_11D = bisection(ssa_11, ssb_11, .0001, mu, M)
-            # record time
-            bisect_time_11D += time.time() - t0
-            ## calculate 11D separatrices analytically
-            # reduce 11D vectors to 2D
-            nu, L = SSR(ssa_11, ssb_11, mu, M)
-            # start the clock
-            t0 = time.time()
-            # calculate the 2D sepatricries analytically
-            temp_separatrix_2D = get_analytic_separatrix(.0001, nu, L)
-            # record time
-            analytic_time_2D += time.time() - t0
-            # calculate 2D sepatrices using the bisection method
+        print('$ {} {}'.format(i, j))
+        # choose a start and end point (11D)
+        ssa_11 = stein_steady_states[i]
+        ssb_11 = stein_steady_states[j]
+        ## calculate 11D separatrices using the bisection method
+        # start the clock
+        t0 = time.time()
+        # calculate the separatrices using bisection
+        temp_separatrix_11D = bisection(ssa_11, ssb_11, .0001, mu, M)
+        # record time
+        bisect_time_11D += time.time() - t0
+        ## calculate 11D separatrices analytically
+        # reduce 11D vectors to 2D
+        nu, L = SSR(ssa_11, ssb_11, mu, M)
+        # start the clock
+        t0 = time.time()
+        # calculate the 2D sepatricries analytically
+        temp_separatrix_2D = get_analytic_separatrix(.0001, nu, L)
+        # record time
+        analytic_time_2D += time.time() - t0
+        # calculate 2D sepatrices using the bisection method
 #            steady states in 2D
-            ssa_2 = np.array([1, 0])
-            ssb_2 = np.array([0, 1])
-            #start clock
-            t0 = time.time()
-            # get 2D sepatrices using the bisection method
-            bisection2D(ssa_2, ssb_2, .0001, nu, L)
-            #record time
-            bisect_time_2D += time.time() - t0
-            # record  2D sepatricies using into the array sep_list_2D (via analytic method )
-            # record  11D sepatricies using into the array sep_list_11D (via bisection method )
-            sep_list_2D[(i, j)] = temp_separatrix_2D
-            sep_list_11D[(i, j)] = temp_separatrix_11D
-            # checks the datatypes of the sepatricies
-            try:
-                sep_list_2D[(j, i)] = 1 - temp_separatrix_2D
-            except TypeError:
-                sep_list_2D[(j, i)] = tuple(1 - val for val in temp_separatrix_2D)
-            try:
-                sep_list_11D[(j, i)] = 1 - temp_separatrix_11D
-            except TypeError:
-                sep_list_11D[(j, i)] = tuple(1 - val for val in temp_separatrix_11D)
-            #open file for writing in binary mode        
-            with open('data/{}'.format(filename), 'wb') as f:
-            # write a pickled representation of sep_list_2D and sep_list_11D to the open file sep_lists_analytic.
-                pickle.dump((sep_list_2D, sep_list_11D), f)
-                
-            print('bisection 11D time: {} s'.format(bisect_time_11D))
-            print('bisection 2D time: {} s'.format(bisect_time_2D))
-            print('analytic 2D time: {} s'.format(analytic_time_2D))
+        ssa_2 = np.array([1, 0])
+        ssb_2 = np.array([0, 1])
+        #start clock
+        t0 = time.time()
+        # get 2D sepatrices using the bisection method
+        # bisection2D(ssa_2, ssb_2, .0001, nu, L)
+        #record time
+        # bisect_time_2D += time.time() - t0
+        # record  2D sepatricies using into the array sep_list_2D (via analytic method )
+        # record  11D sepatricies using into the array sep_list_11D (via bisection method )
+        sep_list_2D[(i, j)] = temp_separatrix_2D
+        sep_list_11D[(i, j)] = temp_separatrix_11D
+        # checks the datatypes of the sepatricies
+        try:
+            sep_list_2D[(j, i)] = 1 - temp_separatrix_2D
+        except TypeError:
+            sep_list_2D[(j, i)] = tuple(1 - val for val in temp_separatrix_2D)
+        try:
+            sep_list_11D[(j, i)] = 1 - temp_separatrix_11D
+        except TypeError:
+            sep_list_11D[(j, i)] = tuple(1 - val for val in temp_separatrix_11D)
 
+        #print('bisection 11D time: {} s'.format(bisect_time_11D))
+        #print('bisection 2D time: {} s'.format(bisect_time_2D))
+        #print('analytic 2D time: {} s'.format(analytic_time_2D))
+
+    #open file for writing in binary mode        
+    with open('data/{}'.format(filename), 'wb') as f:
+    # write a pickled representation of sep_list_2D and sep_list_11D to the open file sep_lists_analytic.
+        pickle.dump((sep_list_2D, sep_list_11D), f)
 
     return sep_list_2D,sep_list_11D
-            
-    
+
+
 def FastTimeAndState(labels,stein_steady_states,mu,M,filename):
     #
     sep_list_2D = {}
@@ -632,7 +628,7 @@ def make_food_web(sep_list_2D, sep_list_11D,labels):
     # xx and yy are locations of these circles (to be plotted)
     circs = []; xx = []; yy = [];
     circ_xx = []; circ_yy = []
-    print('colorwheel is', wheels[1][0].get_color())
+    #print('colorwheel is', wheels[1][0].get_color())
 #    labels = list(range(0,len(sep_list_2D)))
     for i in range(len(labels)):
         xx.append(np.sin(2*np.pi*i/len(labels)))
@@ -694,14 +690,14 @@ def make_food_web(sep_list_2D, sep_list_11D,labels):
                 # make arrows pointing from one circle to another
                 ax.plot([xx[i],point[0]], [yy[i], point[1]],
                         color=outer_color, linewidth=thickness, zorder=zorder,
-                        solid_capstyle='butt',alpha = .1)
+                        solid_capstyle='butt',alpha = 1)
 
     edge = (1+circ_size)*1.2
     ax.set_aspect('equal')
     plt.axis([-edge, edge, -edge, edge])
     plt.axis('off')
     plt.tight_layout()
-    filename = 'figs/example_food_web_7.pdf'
+    filename = 'figs/example_food_web_8.pdf'
     plt.savefig(filename)
     print('saved fig to {}'.format(filename))
     return                
@@ -896,7 +892,7 @@ def sep_check(filename1, filename2):
         print('-----------------------')
 
 #        print(sep_list_2D)
-def navigate_between_fps(sep_matrix, verbose, labels,hrz):
+def navigate_between_fps(sep_matrix, verbose, labels, hrz):
     """ Return all possible ways from one steady state to another. Returns a
     dictionary ordered_paths that takes a pair of steady states as a key (e.g.
     ordered_paths['AC']) and returns a list of the shortest to the longest
@@ -905,75 +901,62 @@ def navigate_between_fps(sep_matrix, verbose, labels,hrz):
     ss_names = labels
     path_lengths = {}
     ordered_paths = {}
-    
-    
-    verbose = False  
+
     starts_ends = itertools.permutations(ss_names, 2)
-#    print(sep_matrix)
 
-    
     for start_end in starts_ends:
-        if True : #start_end[0] == '3' :
-           
+        # start_end looks like ('A', 'B'); start_end_str looks like 'AB'
+        ordered_paths[start_end] = []
 
-            # start_end looks like ('A', 'B'); start_end_str looks like 'AB'
-            start_end_str = ''.join(start_end)
-            ordered_paths[start_end_str] = []
+        # get all possible in-between paths that start and end with start_end 
+        remainder = [item for item in ss_names if item not in start_end]
+        within_paths = []
+        for N in range(hrz):
+            within_paths.extend(itertools.permutations(remainder, N))
 
-            # get all possible in-between paths that start and end with start_end 
-            remainder = [item for item in ss_names if item not in start_end]
-       
-            
-            within_paths = []
-            for N in range(hrz):
-                within_paths.extend(itertools.combinations(remainder, N))
-
-            # find the distance of all possible paths that start and end with start_end
-            for within_path in within_paths:
-                within_path = list(within_path)
-            
-            
-                full_path = [start_end[0]] + within_path + [start_end[-1]]
-#                print(full_path)
-                full_path_str = ''.join(full_path)
+        #print(within_paths)
+        # find the distance of all possible paths that start and end with start_end
+        for within_path in within_paths:
+            within_path = list(within_path)
+            full_path = tuple([start_end[0]] + within_path + [start_end[-1]])
+            #print(full_path)
 #                print(full_path_str)
-                full_path_indices = [ss_names.index(val) for val in full_path]
+            full_path_indices = [ss_names.index(val) for val in full_path]
 #                print(full_path_indices)
 #                print(full_path_indices)
-                full_path_distance = 0
+            full_path_distance = 0
 
-                for i in range(len(full_path_indices)-1):
-                    i1 = full_path_indices[i]
-                    i2 = full_path_indices[i+1]
-        
+            for i in range(len(full_path_indices)-1):
+                i1 = full_path_indices[i]
+                i2 = full_path_indices[i+1]
 
-                    try:
-                        full_path_distance += sep_matrix[i1, i2]
-                        if i1 == '6' and i2 == '3':
-                            print('hello')
+                try:
+                    #print(np.shape(sep_matrix), i1, i2)
+                    #print(sep_matrix[i1,i2])
+                    full_path_distance += sep_matrix[i1, i2]
 #                        print(full_path_distance)
-                    except TypeError:
-                        full_path_distance += 1000
-                if verbose:
-                    print(full_path_str, full_path_distance)
-                path_lengths[full_path_str] = full_path_distance
-                
-    
-                # add the distance of possible paths from start to end in order
-                # (this is effectively 'insertion sort')
-                if len(ordered_paths[start_end_str]) == 0:
-                    ordered_paths[start_end_str].append(full_path_str)
-                else:
-                    insert_flag = False
-                    for i,path in enumerate(ordered_paths[start_end_str]):
-                        if (full_path_distance < path_lengths[path]) and not insert_flag:
-                            ordered_paths[start_end_str].insert(i, full_path_str)
-                            insert_flag = True
-                    if not insert_flag:
-                        ordered_paths[start_end_str].append(full_path_str)
+                except TypeError:
+                    full_path_distance += 1000
             if verbose:
-                print(ordered_paths[start_end_str])
-                
+                print(full_path, full_path_distance)
+            path_lengths[full_path] = full_path_distance
+
+            # add the distance of possible paths from start to end in order
+            # (this is effectively 'insertion sort')
+            if len(ordered_paths[start_end]) == 0:
+                ordered_paths[start_end].append(full_path)
+            else:
+                insert_flag = False
+                for i,path in enumerate(ordered_paths[start_end]):
+                    if (full_path_distance < path_lengths[path]) and not insert_flag:
+                        ordered_paths[start_end].insert(i, full_path)
+                        insert_flag = True
+                if not insert_flag:
+                    ordered_paths[start_end].append(full_path)
+        if verbose:
+            print(ordered_paths[start_end])
+            print()
+            
 
     return ordered_paths, path_lengths
 
@@ -1142,8 +1125,8 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
     stein_steady_states = get_stein_steady_states(unstable_2_fps)
     # track changes in figures
     if not stein:
-        labelStates = {0:list(range(0,2)),1:list(range(0,8)),2:list(range(0,30))}
-        labels = labelStates.get(UD)
+        labels = list(range(len(stable_fps)))
+
         #file that contains precalculated separatricies(speeds up program time)
         filename = 'sep_lists_analytic{}'.format(UD)
 #        match(labels,stable_fps,mu,M)
@@ -1154,33 +1137,36 @@ def Generate_And_Save_FixedPoints(read_data,UD,stein,generateFigure) :
             sep_list_2D, sep_list_11D = TimeAndState(labels,stable_fps,mu,M,filename)
 #            make_food_web(sep_list_2D, sep_list_11D,labels)
         else:
-           # reads pre-generated analytic sepatrix data from the file 'sep_lists_analytic'
-           print('Pulling nss states for {} states from files'.format(UD))
-           sep_list_2D, sep_list_11D = FastTimeAndState(labels,stable_fps,mu,M,filename)
-           if generateFigure:
-               make_food_web(sep_list_2D, sep_list_11D,labels)
+            # reads pre-generated analytic sepatrix data from the file 'sep_lists_analytic'
+            print('Pulling UD={} states from file'.format(UD))
+            sep_list_2D, sep_list_11D = FastTimeAndState(labels,stable_fps,mu,M,filename)
+
+        if generateFigure:
+            make_food_web(sep_list_2D, sep_list_11D,labels)
         sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stable_fps)
-        return sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels   
+        return sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels
+
     else:
-         labelStates = {0:list(range(1,6))}
+         labelStates = {0:list(range(5))}
          labels = labelStates.get(UD)
-         print('Printing stein steady states')
+         #print('Printing stein steady states')
          #file that contains precalculated separatricies(speeds up program time)
          filename = 'sep_lists_analyticS'
 #         match(labels,stein_steady_states,mu,M)
          if not read_data:
-            print('Generating  s steady states')
-            # calculates the 2-D and 11-D separatrix for each path (using bisection and analytic methods)
-            # record time that it takes to calculate generate separatricies 
-            sep_list_2D, sep_list_11D = TimeAndState(labels,stein_steady_states,mu,M,filename)
-            print('sep list 2D in generate stein steady states')
+             print('Generating  s steady states')
+             # calculates the 2-D and 11-D separatrix for each path (using bisection and analytic methods)
+             # record time that it takes to calculate generate separatricies 
+             sep_list_2D, sep_list_11D = TimeAndState(labels,stein_steady_states,mu,M,filename)
+             print('sep list 2D in generate stein steady states')
          else:
-           print('Pulling sss from files')
-           # reads pre-generated analytic sepatrix data from the file 'sep_lists_analytic'
-           sep_list_2D, sep_list_11D = FastTimeAndState(labels,stein_steady_states,mu,M,filename)
-           if generateFigure :
-               make_food_web(sep_list_2D, sep_list_11D,labels)
-         print('MY LIST')
+             print('Pulling stein steady states from file')
+             # reads pre-generated analytic sepatrix data from the file 'sep_lists_analytic'
+             sep_list_2D, sep_list_11D = FastTimeAndState(labels,stein_steady_states,mu,M,filename)
+
+         if generateFigure :
+             make_food_web(sep_list_2D, sep_list_11D,labels)
+
          sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D = NormAndSep(sep_list_11D,sep_list_2D,labels,stein_steady_states)
          return sep_matrix_2D,sep_matrix_11D,norm_matrix_2D,norm_matrix_11D,labels
 
@@ -1435,65 +1421,165 @@ def main():
 #    sep_check('sep_lists_analytic1','sep_lists_analytic2')
 #    
 
+def get_translation_dict():
+    """ Creates a dictionary to translate between different UDs.
+    translation_dict[from UD][to UD][from fp] = to fp
+    translation_dict['S'][2][1] = 13, meaning that steady state 1 of the Stein
+    'S' fixed points corresponds to steady state 3 of the 2 UD fixed points.
+    """
+    param_list, ics = get_stein_parameters()
+    bacteriaLabels, mu, M, eps = param_list
+    unstable_2_fps = get_nonnegative_fps(mu, M, 2, False)
+
+    all_fps = {}
+
+    for UD in [0, 1, 2]:
+        ud_fps = get_nonnegative_fps(mu, M, UD, False)
+        all_fps[UD] = ud_fps
+
+    all_fps['S'] = get_stein_steady_states(unstable_2_fps)
+
+    translation_dict = {x: {y: {} for y in all_fps} for x in all_fps}
+    for old in all_fps:
+        for new in all_fps:
+            for i,old_fp in enumerate(all_fps[old]):
+                translate_flag = False
+                for j,new_fp in enumerate(all_fps[new]):
+                    if all(old_fp == new_fp):
+                        translation_dict[old][new][i] = j
+                        translate_flag = True
+                if not translate_flag:
+                    translation_dict[old][new][i] = None
+
+    return translation_dict
+
+
+def eric_main():
+    translation_dict = get_translation_dict()
+    #print(translation_dict['S'][1])
+    #print(translation_dict['S'][0])
+
+    seps_2D = {}
+    seps_11D = {}
+    norms_2D = {}
+    norms_11D = {}
+
+    for UD in ['S', 0, 1, 2]:
+        if UD == 'S':
+            sep_matrix_2D, sep_matrix_11D, norm_matrix_2D, norm_matrix_11D, labels = (
+               Generate_And_Save_FixedPoints(read_data=True, UD=0, stein=True, generateFigure=False))
+        else:
+            sep_matrix_2D, sep_matrix_11D, norm_matrix_2D, norm_matrix_11D, labels = (
+               Generate_And_Save_FixedPoints(read_data=True, UD=UD, stein=False, generateFigure=False))
+
+        seps_2D[UD] = sep_matrix_2D
+        seps_11D[UD] = sep_matrix_11D
+        norms_2D[UD] = norm_matrix_2D
+        norms_11D[UD] = norm_matrix_11D
+
+    print('\n### PROPORTIONAL SEPARATRIX ###')
+
+    ordered_paths_11Ds = {}
+    path_lengths_11Ds = {}
+    ordered_paths_2Ds = {}
+    path_lengths_2Ds = {}
+
+    read_data = True 
+    filename = 'data/prop_path_lengths_S012'
+
+    if not read_data:
+        for UD in ['S', 0, 1, 2]:
+            UD_fp_labels = list(translation_dict[UD][0].keys())
+
+            ordered_paths_11D, path_lengths_11D = navigate_between_fps(
+                seps_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+            #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
+            #    seps_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+
+            ordered_paths_11Ds[UD] = ordered_paths_11D
+            path_lengths_11Ds[UD] = path_lengths_11D
+            #ordered_paths_2Ds[UD] = ordered_paths_2D
+            #path_lengths_2Ds[UD] = path_lengths_2D
+
+        with open(filename, 'wb') as f:
+            pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
+    else:
+        with open(filename, 'rb') as f:
+            (ordered_paths_11Ds, path_lengths_11Ds) = pickle.load(f)
+
+
+    for path in ordered_paths_11Ds['S']:
+        print()
+        print([path_lengths_11Ds['S'][pp] for pp in ordered_paths_11Ds['S'][path][:3]])
+        print(ordered_paths_11Ds['S'][path][:3])
+
+        path_UD_2 = tuple(translation_dict['S'][2][x] for x in path)
+        print([tuple(translation_dict[2]['S'][x] for x in pp) for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
+        print([path_lengths_11Ds[2][pp] for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
+
+
+    print('\n### NORMED SEPARATRIX ###')
+
+    ordered_paths_11Ds = {}
+    path_lengths_11Ds = {}
+    ordered_paths_2Ds = {}
+    path_lengths_2Ds = {}
+
+    filename = 'data/norm_path_lengths_S012'
+
+    if not read_data:
+        for UD in ['S', 0, 1, 2]:
+            UD_fp_labels = list(translation_dict[UD][0].keys())
+
+            ordered_paths_11D, path_lengths_11D = navigate_between_fps(
+                norms_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+            #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
+            #    norms_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+
+            ordered_paths_11Ds[UD] = ordered_paths_11D
+            path_lengths_11Ds[UD] = path_lengths_11D
+            #ordered_paths_2Ds[UD] = ordered_paths_2D
+            #path_lengths_2Ds[UD] = path_lengths_2D
+        with open(filename, 'wb') as f:
+            pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
+    else:
+        with open(filename, 'rb') as f:
+            ordered_paths_11Ds, path_lengths_11Ds = pickle.load(f)
+
+    for path in ordered_paths_11Ds['S']:
+        print()
+        print([path_lengths_11Ds['S'][pp] for pp in ordered_paths_11Ds['S'][path][:3]])
+        print(ordered_paths_11Ds['S'][path][:3])
+
+        path_UD_2 = tuple(translation_dict['S'][2][x] for x in path)
+        print([tuple(translation_dict[2]['S'][x] for x in pp) for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
+        print(ordered_paths_11Ds[2][path_UD_2][:3])
+        print([path_lengths_11Ds[2][pp] for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
+
+
+
+
+#    for path in ordered_paths_11Ds['S']:
+#        print()
+#        print(path, 'in Stein')
+#        [print(pp, path_lengths_11Ds['S'][pp]) for pp in ordered_paths_11Ds['S'][path]]
+#
+#        path_UD_1 = tuple(translation_dict['S'][1][x] for x in path)
+#        print(path_UD_1, 'in UD=1')
+#        try:
+#            [print(tuple(translation_dict[1]['S'][x] for x in pp), path_lengths_11Ds[1][pp]) for pp in ordered_paths_11Ds[1][path_UD_1][:5]]
+#        except KeyError:
+#            True
+#
+#        path_UD_2 = tuple(translation_dict['S'][2][x] for x in path)
+#        print(path_UD_2, 'in UD=2')
+#        try:
+#            [print(tuple(translation_dict[2]['S'][x] for x in pp), path_lengths_11Ds[2][pp]) for pp in ordered_paths_11Ds[2][path_UD_2][:5]]
+#        except KeyError:
+#            True
+    #[print(x, ordered_paths_11Ds['S'][x], '\n      ', ordered_paths_2Ds['S'][x]) for x in ordered_paths_11Ds['S']]
+    #[print(x, [path_lengths_11Ds['S'][val] for val in ordered_paths_11Ds['S'][x]], '\n      ', [path_lengths_2Ds['S'][val] for val in ordered_paths_2Ds['S'][x]]) for x in ordered_paths_11Ds['S']]
 
 if __name__ == "__main__":
-    main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #main()
+    eric_main()

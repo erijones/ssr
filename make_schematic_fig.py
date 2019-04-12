@@ -71,7 +71,7 @@ for i,x in enumerate(xs):
         rot_vec = np.dot(A, translated_vec)
         u, v = rot_vec
 
-        new_Z[j][i] = -2*np.exp(-(.01*u**2 + v**2)*10)
+        new_Z[j][i] = -2*np.exp(-(.01*u**2 + 1*v**2)*10)
         Z[j][i] = Z[j][i] + new_Z[j][i]
 
 # deepen steady state C at (0, -1)
