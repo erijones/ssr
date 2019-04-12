@@ -1456,7 +1456,8 @@ def get_translation_dict():
 
 def eric_main():
     translation_dict = get_translation_dict()
-    #print(translation_dict['S'][1])
+    # translation_dict[from: 'S', 0, 1, or 2][to: 'S', 0, 1, or 2][from name: 4]
+    #print(translation_dict['S'][1][3])
     #print(translation_dict['S'][0])
 
     seps_2D = {}
@@ -1467,10 +1468,10 @@ def eric_main():
     for UD in ['S', 0, 1, 2]:
         if UD == 'S':
             sep_matrix_2D, sep_matrix_11D, norm_matrix_2D, norm_matrix_11D, labels = (
-               Generate_And_Save_FixedPoints(read_data=True, UD=0, stein=True, generateFigure=False))
+               Generate_And_Save_FixedPoints(read_data=False, UD=0, stein=True, generateFigure=False))
         else:
             sep_matrix_2D, sep_matrix_11D, norm_matrix_2D, norm_matrix_11D, labels = (
-               Generate_And_Save_FixedPoints(read_data=True, UD=UD, stein=False, generateFigure=False))
+               Generate_And_Save_FixedPoints(read_data=False, UD=UD, stein=False, generateFigure=False))
 
         seps_2D[UD] = sep_matrix_2D
         seps_11D[UD] = sep_matrix_11D
@@ -1484,7 +1485,7 @@ def eric_main():
     ordered_paths_2Ds = {}
     path_lengths_2Ds = {}
 
-    read_data = True 
+    read_data = False
     filename = 'data/prop_path_lengths_S012'
 
     if not read_data:
@@ -1553,32 +1554,9 @@ def eric_main():
 
         path_UD_2 = tuple(translation_dict['S'][2][x] for x in path)
         print([tuple(translation_dict[2]['S'][x] for x in pp) for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
-        print(ordered_paths_11Ds[2][path_UD_2][:3])
+        #print(ordered_paths_11Ds[2][path_UD_2][:3])
         print([path_lengths_11Ds[2][pp] for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
 
-
-
-
-#    for path in ordered_paths_11Ds['S']:
-#        print()
-#        print(path, 'in Stein')
-#        [print(pp, path_lengths_11Ds['S'][pp]) for pp in ordered_paths_11Ds['S'][path]]
-#
-#        path_UD_1 = tuple(translation_dict['S'][1][x] for x in path)
-#        print(path_UD_1, 'in UD=1')
-#        try:
-#            [print(tuple(translation_dict[1]['S'][x] for x in pp), path_lengths_11Ds[1][pp]) for pp in ordered_paths_11Ds[1][path_UD_1][:5]]
-#        except KeyError:
-#            True
-#
-#        path_UD_2 = tuple(translation_dict['S'][2][x] for x in path)
-#        print(path_UD_2, 'in UD=2')
-#        try:
-#            [print(tuple(translation_dict[2]['S'][x] for x in pp), path_lengths_11Ds[2][pp]) for pp in ordered_paths_11Ds[2][path_UD_2][:5]]
-#        except KeyError:
-#            True
-    #[print(x, ordered_paths_11Ds['S'][x], '\n      ', ordered_paths_2Ds['S'][x]) for x in ordered_paths_11Ds['S']]
-    #[print(x, [path_lengths_11Ds['S'][val] for val in ordered_paths_11Ds['S'][x]], '\n      ', [path_lengths_2Ds['S'][val] for val in ordered_paths_2Ds['S'][x]]) for x in ordered_paths_11Ds['S']]
 
 if __name__ == "__main__":
     #main()
