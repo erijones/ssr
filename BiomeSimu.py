@@ -1509,60 +1509,99 @@ def eric_main():
             (ordered_paths_11Ds, path_lengths_11Ds) = pickle.load(f)
 
     
-    print('************************')
+   
+    State1 = 'S'
+    State2 = 1
+    nonecounter = 0
+    nonecounterall = 0
+    direct = 0
+    indirect = 0
+    count  = 0
     
-    for path in ordered_paths_11Ds['S']:
+    
+    nonecounterN = 0
+    nonecounterallN = 0
+    directN = 0
+    indirectN = 0
+    countN  = 0
+    
+    for path in ordered_paths_11Ds[State1]:
         print()
-        print([path_lengths_11Ds['S'][pp] for pp in ordered_paths_11Ds['S'][path][:3]])
-        print(ordered_paths_11Ds['S'][path][:3])
-        path_UD_2 = tuple(translation_dict['S'][1][x] for x in path)
+        print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
+        print(ordered_paths_11Ds[State1][path][:3])
+        path_UD_2 = tuple(translation_dict[State1][State2][x] for x in path)
         if path_UD_2[0] == None or path_UD_2[1] == None :
             print('None-Type found in (start,end)')
         else:
 
-            print([tuple(translation_dict[1]['S'][x] for x in pp) for pp in ordered_paths_11Ds[1][path_UD_2][:3]])
-            print([path_lengths_11Ds[1][pp] for pp in ordered_paths_11Ds[1][path_UD_2][:3]])
+            print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+            print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+            p = [tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]]
             print(' NO None-Type found in (start,end)')
+            count = count + 1
+            
+
+            if len(p[0]) == 2 :
+                print(p[0])
+                direct = direct + 1
+               
+            else :
+                indirect = indirect + 1
+            if None in p[0] :
+                nonecounter = nonecounter + 1
+            if None in p[0] or None in p[1] or None in p[2]:
+                nonecounterall = nonecounterall + 1
+
+                
+
+                
+
+    
+    print('\n### NORMED SEPARATRIX ###')
+
+    ordered_paths_11Ds = {}
+    path_lengths_11Ds = {}
+    ordered_paths_2Ds = {}
+    path_lengths_2Ds = {}
+
+    filename = 'data/norm_path_lengths_S012'
+
+    if not read_data:
+        for UD in ['S', 0, 1, 2]:
+            UD_fp_labels = list(translation_dict[UD][0].keys())
+
+            ordered_paths_11D, path_lengths_11D = navigate_between_fps(
+                norms_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+            #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
+            #    norms_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+
+            ordered_paths_11Ds[UD] = ordered_paths_11D
+            path_lengths_11Ds[UD] = path_lengths_11D
+            #ordered_paths_2Ds[UD] = ordered_paths_2D
+            #path_lengths_2Ds[UD] = path_lengths_2D
+        with open(filename, 'wb') as f:
+            pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
+    else:
+        with open(filename, 'rb') as f:
+            ordered_paths_11Ds, path_lengths_11Ds = pickle.load(f)
+
+    for path in ordered_paths_11Ds['S']:
+        print()
+        print([path_lengths_11Ds['S'][pp] for pp in ordered_paths_11Ds['S'][path][:3]])
+        print(ordered_paths_11Ds['S'][path][:3])
+
+        path_UD_2 = tuple(translation_dict['S'][2][x] for x in path)
+        print([tuple(translation_dict[2]['S'][x] for x in pp) for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
+        #print(ordered_paths_11Ds[2][path_UD_2][:3])
+        print([path_lengths_11Ds[2][pp] for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
 
 
-#    print('\n### NORMED SEPARATRIX ###')
-#
-#    ordered_paths_11Ds = {}
-#    path_lengths_11Ds = {}
-#    ordered_paths_2Ds = {}
-#    path_lengths_2Ds = {}
-#
-#    filename = 'data/norm_path_lengths_S012'
-#
-#    if not read_data:
-#        for UD in ['S', 0, 1, 2]:
-#            UD_fp_labels = list(translation_dict[UD][0].keys())
-#
-#            ordered_paths_11D, path_lengths_11D = navigate_between_fps(
-#                norms_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
-#            #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
-#            #    norms_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
-#
-#            ordered_paths_11Ds[UD] = ordered_paths_11D
-#            path_lengths_11Ds[UD] = path_lengths_11D
-#            #ordered_paths_2Ds[UD] = ordered_paths_2D
-#            #path_lengths_2Ds[UD] = path_lengths_2D
-#        with open(filename, 'wb') as f:
-#            pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
-#    else:
-#        with open(filename, 'rb') as f:
-#            ordered_paths_11Ds, path_lengths_11Ds = pickle.load(f)
-#
-#    for path in ordered_paths_11Ds['S']:
-#        print()
-#        print([path_lengths_11Ds['S'][pp] for pp in ordered_paths_11Ds['S'][path][:3]])
-#        print(ordered_paths_11Ds['S'][path][:3])
-#
-#        path_UD_2 = tuple(translation_dict['S'][2][x] for x in path)
-#        print([tuple(translation_dict[2]['S'][x] for x in pp) for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
-#        #print(ordered_paths_11Ds[2][path_UD_2][:3])
-#        print([path_lengths_11Ds[2][pp] for pp in ordered_paths_11Ds[2][path_UD_2][:3]])
-
+    print(indirect/(direct + indirect))
+    print(nonecounter/(direct + indirect))
+    print(nonecounterall/((direct + indirect)))
+    
+    
+    print('****************')
 
 if __name__ == "__main__":
     #main()
