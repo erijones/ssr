@@ -1477,211 +1477,209 @@ def eric_main():
         seps_11D[UD] = sep_matrix_11D
         norms_2D[UD] = norm_matrix_2D
         norms_11D[UD] = norm_matrix_11D
-
-    print('\n### PROPORTIONAL SEPARATRIX ###')
-
-    ordered_paths_11Ds = {}
-    path_lengths_11Ds = {}
-    ordered_paths_2Ds = {}
-    path_lengths_2Ds = {}
-
-    read_data = True
-    filename = 'data/prop_path_lengths_S012'
-
-    if not read_data:
-        for UD in ['S', 0, 1, 2]:
-            UD_fp_labels = list(translation_dict[UD][0].keys())
-
-            ordered_paths_11D, path_lengths_11D = navigate_between_fps(
-                seps_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
-            #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
-            #    seps_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
-
-            ordered_paths_11Ds[UD] = ordered_paths_11D
-            path_lengths_11Ds[UD] = path_lengths_11D
-            #ordered_paths_2Ds[UD] = ordered_paths_2D
-            #path_lengths_2Ds[UD] = path_lengths_2D
-
-        with open(filename, 'wb') as f:
-            pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
-    else:
-        with open(filename, 'rb') as f:
-            (ordered_paths_11Ds, path_lengths_11Ds) = pickle.load(f)
-
     
-   
-
+    proportional = True 
+    if proportional :  
+        print('\n### PROPORTIONAL SEPARATRIX ###')
+        ordered_paths_11Ds = {}
+        path_lengths_11Ds = {}
+        ordered_paths_2Ds = {}
+        path_lengths_2Ds = {}
     
+        read_data = True
+        filename = 'data/prop_path_lengths_S012'
+        if not read_data:
+            for UD in ['S', 0, 1, 2]:
+                UD_fp_labels = list(translation_dict[UD][0].keys())
     
-#    nonecounterN = 0
-#    nonecounterallN = 0
-#    directN = 0
-#    indirectN = 0
-#    countN  = 0
-#    
-#    for path in ordered_paths_11Ds[State1]:
-#        print()
-##        print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
-#        print(ordered_paths_11Ds[State1][path][:3])
-#        path_UD_2 = tuple(translation_dict[State1][State2][x] for x in path)
-#        
-#        if path_UD_2[0] == None or path_UD_2[1] == None :
-#            print('None-Type found in (start,end)')
-#        else:
-#
-#            print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
-#            print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
-#            p = [tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]]
-#            p = ordered_paths_11Ds[State1][path][:3]
-#            print(' NO None-Type found in (start,end)')
-#            count = count + 1
-#            
-#
-#            if len(p[0]) == 2 :
-#                print(p[0])
-#                direct = direct + 1
-#               
-#            else :
-#                indirect = indirect + 1
-#            if None in p[0] :
-#                nonecounter = nonecounter + 1
-#
-#            if None in p[0] :
-#                nonecounterall = nonecounterall + 1
-#            if None in p[1] :
-#                nonecounterall = nonecounterall + 1
-#            if None in p[2] :
-#                nonecounterall = nonecounterall + 1
-#   
-##    print(indirect/count)
-#    print(direct/(count))
-#    print(nonecounter/(direct + indirect))
-#    print(nonecounterall/(count*3))
-                
-#How often is the optimal path direct, with one intermediate, or with 2 intermediates (for each of Stein, 1-UD, and 2-UD cases)
-# Stein : 45.0 %
-# 1-UD : 58.3 %
-# 2-UD : 45.0 %
-#How often does the most optimal path between two stein steady states change when using 2 unstable directions? (e.g. 2 out of 20 times there is a "None" introduced)
-# Stein : 0.0 %
-# 1-UD : 0.0 %
-# 2-UD : 5.0 %
-#How often do the three most optimal paths between two stein steady states change when using 2 unstable directions? (e.g. 10 out of 60 times there is a "None" introduced)
-# Stein : 0.0%
-# 1-UD : 22.2%
-# 2-UD : 30.0%
-#Repeat these two things using: 
-#most optimal path between 1-UD steady states when including 2-UD steady states
-#How often does the optimal path change?
-# 39.2 % of the time a 2-UD steady state in the most optimal path
-#How often do the three most optimal paths change? 
-#  53.6% of the time a 2-UD steady state in the three most optimal path
-#
-
-   
-#most optimal path between Stein steady states when including 1-UD steady states (* this will be kind of tricky, since one of the Stein steady states is 2-UD and so this might not work very well)
-#                
-    read_data = True
-    State1 = 'S'
-    State2 = 1
-    nonecounter = 0
-    nonecounterall = 0
-    direct = 0
-    indirect = 0
-    count  = 0
+                ordered_paths_11D, path_lengths_11D = navigate_between_fps(
+                    seps_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+                #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
+                #    seps_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
     
-    print('\n### NORMED SEPARATRIX ###')
-
-    ordered_paths_11Ds = {}
-    path_lengths_11Ds = {}
-    ordered_paths_2Ds = {}
-    path_lengths_2Ds = {}
-
-    filename = 'data/norm_path_lengths_S012'
-
-    if not read_data:
-        for UD in ['S', 0, 1, 2]:
-            UD_fp_labels = list(translation_dict[UD][0].keys())
-
-            ordered_paths_11D, path_lengths_11D = navigate_between_fps(
-                norms_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
-            #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
-            #    norms_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
-
-            ordered_paths_11Ds[UD] = ordered_paths_11D
-            path_lengths_11Ds[UD] = path_lengths_11D
-            #ordered_paths_2Ds[UD] = ordered_paths_2D
-            #path_lengths_2Ds[UD] = path_lengths_2D
-        with open(filename, 'wb') as f:
-            pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
+                ordered_paths_11Ds[UD] = ordered_paths_11D
+                path_lengths_11Ds[UD] = path_lengths_11D
+                #ordered_paths_2Ds[UD] = ordered_paths_2D
+                #path_lengths_2Ds[UD] = path_lengths_2D
     
-    else:
-        with open(filename, 'rb') as f:
-            ordered_paths_11Ds, path_lengths_11Ds = pickle.load(f)
-            
-    for path in ordered_paths_11Ds[State1]:
-        print()
-#        print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
-        print(ordered_paths_11Ds[State1][path][:3])
-        
-        p = ordered_paths_11Ds[State1][path][:3]
-        path_UD_2 = tuple(translation_dict[State1][State2][x] for x in path)
-        if path_UD_2[0] == None or path_UD_2[1] == None :
-            if len(p[0]) == 2 :
-                print(p[0])
-                direct = direct + 1
-            print('None-Type found in (start,end)')
-            count = count + 1
- 
+            with open(filename, 'wb') as f:
+                pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
         else:
-#            print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
-            #print(ordered_paths_11Ds[2][path_UD_2][:3])
-#            print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
-            
-#            p = [tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]]
-            count = count + 1
-            
-
-            if len(p[0]) == 2 :
-                
-                print(p[0])
-                direct = direct + 1  
-            else :
-                indirect = indirect + 1
-           
-            if None in p[0] :
-                nonecounter = nonecounter + 1
-
-            if None in p[0] :
-                nonecounterall = nonecounterall + 1
-            if None in p[1] :
-                nonecounterall = nonecounterall + 1
-            if None in p[2] :
-                nonecounterall = nonecounterall + 1
-    print(count)
-#    print(indirect/count)
-    print(direct/(count))
-##    print(nonecounter/(direct + indirect))
-#    print(nonecounterall/(count*3))
+            with open(filename, 'rb') as f:
+                (ordered_paths_11Ds, path_lengths_11Ds) = pickle.load(f)
     
-#How often is the optimal path direct, with one intermediate, or with 2 intermediates (for each of Stein, 1-UD, and 2-UD cases)
-# Stein : 42.0 %
-# 1-UD : 42. 0%
-# 2-UD : 45.0 %
-#How often does the most optimal path between two stein steady states change when using 2 unstable directions? (e.g. 2 out of 20 times there is a "None" introduced)
-# Stein : 0.0 %
-# 1-UD : 0.0 %
-# 2-UD : 5.0 %
-#How often do the three most optimal paths between two stein steady states change when using 2 unstable directions? (e.g. 10 out of 60 times there is a "None" introduced)
-# Stein : 0.0%
-# 1-UD : 22.2%
-# 2-UD : 30.0%
-#Repeat these two things using: 
-#most optimal path between 1-UD steady states when including 2-UD steady states
-#How often does the optimal path change?
-# 39.2 % of the time a 2-UD steady state in the most optimal path
-#How often do the three most optimal paths change? 
-#  53.6% of the time a 2-UD steady state in the three most optimal path
+        read_data = True
+        State1 = 'S'
+        State2 = 2
+        nonecounter = 0
+        nonecounterall = 0
+        direct = 0
+        indirect = 0
+        count  = 0
+            
+        
+        for path in ordered_paths_11Ds[State1]:
+            p = ordered_paths_11Ds[State1][path][:3]
+            print()
+            path_UD_2 = tuple(translation_dict[State1][State2][x] for x in path)
+            if path_UD_2[0] == None or path_UD_2[1] == None :
+                print('None-Type found in for path --> {}'.format(path_UD_2))
+                count += 1
+                ps = True
+                if ps:
+                    if len(p[0]) == 2 :
+                        print(p[0])
+                        direct = direct + 1
+            else:
+                print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
+                print(ordered_paths_11Ds[State1][path][:3])
+                print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+                print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+#                p = [tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]]
+                print(' NO None-Type found  for path --> {}'.format(path_UD_2))
+                count += 1
+    
+                if len(p[0]) == 2 :
+                    print(p[0])
+                    direct = direct + 1    
+                else :
+                    indirect += 1
+                if None in p[0] :
+                    nonecounter += 1
+                    nonecounterall +=  1
+                if None in p[1] :
+                    nonecounterall +=  1
+                if None in p[2] :
+                    nonecounterall +=  1
+       
+        print(direct/(count))
+        print(nonecounter/(count))
+        print(nonecounterall/(count*3))
+                
+        #How often is the optimal path direct, with one intermediate, or with 2 intermediates (for each of Stein, 1-UD, and 2-UD cases)
+        # Stein : 45.0 % (All paths)
+        # 1-UD : 58.3 %(Non-None states) --> 35%(All states)
+        # 2-UD : 45.0 % 
+        #How often does the most optimal path between two stein steady states change when using 2 unstable directions? (e.g. 2 out of 20 times there is a "None" introduced)
+        # Stein : 0.0 %
+        # 1-UD : 0.0 % (All states & Non-none states)
+        # 2-UD : 5.0 %
+        #How often do the three most optimal paths between two stein steady states change when using 2 unstable directions? (e.g. 10 out of 60 times there is a "None" introduced)
+        # Stein : 0.0%
+        # 1-UD : 22.2% (Non-none states) --> 13.3% (All states)
+        # 2-UD : 30.0%
+        #Repeat these two things using: 
+        #most optimal path between 1-UD steady states when including 2-UD steady states
+        #How often does the optimal path change?
+        # 39.2 % of the time a 2-UD steady state in the most optimal path
+        #How often do the three most optimal paths change? 
+        #  53.6% of the time a 2-UD steady state in the three most optimal path
+        #most optimal path between Stein steady states when including 1-UD steady states (* this will be kind of tricky, since one of the Stein steady states is 2-UD and so this might not work very well)
+
+
+                
+    Normed = False
+    if Normed:
+        print('\n### NORMED SEPARATRIX ###')
+        read_data = True
+        ordered_paths_11Ds = {}
+        path_lengths_11Ds = {}
+        ordered_paths_2Ds = {}
+        path_lengths_2Ds = {}
+    
+        filename = 'data/norm_path_lengths_S012'
+    
+        if not read_data:
+            for UD in ['S', 0, 1, 2]:
+                UD_fp_labels = list(translation_dict[UD][0].keys())
+    
+                ordered_paths_11D, path_lengths_11D = navigate_between_fps(
+                    norms_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+                #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
+                #    norms_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
+    
+                ordered_paths_11Ds[UD] = ordered_paths_11D
+                path_lengths_11Ds[UD] = path_lengths_11D
+                #ordered_paths_2Ds[UD] = ordered_paths_2D
+                #path_lengths_2Ds[UD] = path_lengths_2D
+            with open(filename, 'wb') as f:
+                pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
+                
+                                 
+        
+        else:
+            with open(filename, 'rb') as f:
+                ordered_paths_11Ds, path_lengths_11Ds = pickle.load(f)
+        
+        
+        
+        State1 = 'S'
+        State2 = 1
+        nonecounter = 0
+        nonecounterall = 0
+        direct = 0
+        indirect = 0
+        count  = 0        
+        
+        
+        for path in ordered_paths_11Ds[State1]:
+            print()
+#            p = ordered_paths_11Ds[State1][path][:3]
+            path_UD_2 = tuple(translation_dict[State1][State2][x] for x in path)
+            if path_UD_2[0] == None or path_UD_2[1] == None :
+                print('None-Type found in for path --> {}'.format(path_UD_2))
+                count += 1
+                ps = False
+                if ps:
+                    if len(p[0]) == 2 :
+                        print(p[0])
+                        direct = direct + 1
+                    
+            else:
+                print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
+                print(ordered_paths_11Ds[State1][path][:3])
+                print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+                print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+                p = [tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]]
+                print(' NO None-Type found  for path --> {}'.format(path_UD_2))
+                count += 1
+    
+                if len(p[0]) == 2 :
+                    print(p[0])
+                    direct = direct + 1    
+                else :
+                    indirect += 1
+                if None in p[0] :
+                    nonecounter += 1
+                    nonecounterall +=  1
+                if None in p[1] :
+                    nonecounterall +=  1
+                if None in p[2] :
+                    nonecounterall +=  1
+        print(count)
+        print(direct/(count))
+        print(nonecounter/(count))
+        print(nonecounterall/(count*3))
+    
+        #How often is the optimal path direct, with one intermediate, or with 2 intermediates (for each of Stein, 1-UD, and 2-UD cases)
+        # Stein : 50.0 % (All paths)
+        # 1-UD : 41.7 %(Non-None states) --> 25%(All states)
+        # 2-UD : 45.0 % (All states & Non-none states)
+        #How often does the most optimal path between two stein steady states change when using 2 unstable directions? (e.g. 2 out of 20 times there is a "None" introduced)
+        # Stein : 0.0 %
+        # 1-UD : 25 % -- >  15% (All states)
+        # 2-UD :20% (All states & Non-none states)
+        #How often do the three most optimal paths between two stein steady states change when using 2 unstable directions? (e.g. 10 out of 60 times there is a "None" introduced)
+        # Stein : 0.0%
+        # 1-UD : 44.4% (Non-none states) --> 26.7% (All states)
+        # 2-UD : 56.7% (All states & Non-none states)
+        #Repeat these two things using: 
+        #most optimal path between 1-UD steady states when including 2-UD steady states
+        #How often does the optimal path change?
+        # 50 % of the time a 2-UD steady state in the most optimal path
+        #How often do the three most optimal paths change? 
+        #  62.5 % of the time a 2-UD steady state in the three most optimal path
+        #most optimal path between Stein steady states when including 1-UD steady states (* this will be kind of tricky, since one of the Stein steady states is 2-UD and so this might not work very well)
 
 
 
