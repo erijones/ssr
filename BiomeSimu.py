@@ -1477,37 +1477,37 @@ def eric_main():
         seps_11D[UD] = sep_matrix_11D
         norms_2D[UD] = norm_matrix_2D
         norms_11D[UD] = norm_matrix_11D
-    
-    proportional = True 
-    if proportional :  
+
+    proportional = True
+    if proportional:
         print('\n### PROPORTIONAL SEPARATRIX ###')
         ordered_paths_11Ds = {}
         path_lengths_11Ds = {}
         ordered_paths_2Ds = {}
         path_lengths_2Ds = {}
-    
+
         read_data = True
         filename = 'data/prop_path_lengths_S012'
         if not read_data:
             for UD in ['S', 0, 1, 2]:
                 UD_fp_labels = list(translation_dict[UD][0].keys())
-    
+
                 ordered_paths_11D, path_lengths_11D = navigate_between_fps(
                     seps_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
                 #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
                 #    seps_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
-    
+
                 ordered_paths_11Ds[UD] = ordered_paths_11D
                 path_lengths_11Ds[UD] = path_lengths_11D
                 #ordered_paths_2Ds[UD] = ordered_paths_2D
                 #path_lengths_2Ds[UD] = path_lengths_2D
-    
+
             with open(filename, 'wb') as f:
                 pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
         else:
             with open(filename, 'rb') as f:
                 (ordered_paths_11Ds, path_lengths_11Ds) = pickle.load(f)
-    
+
         read_data = True
         State1 = 'S'
         State2 = 2
@@ -1516,11 +1516,11 @@ def eric_main():
         direct = 0
         indirect = 0
         count  = 0
-            
-        
+
+
         for path in ordered_paths_11Ds[State1]:
             p = ordered_paths_11Ds[State1][path][:3]
-            print()
+            #print()
             path_UD_2 = tuple(translation_dict[State1][State2][x] for x in path)
             if path_UD_2[0] == None or path_UD_2[1] == None :
                 print('None-Type found in for path --> {}'.format(path_UD_2))
@@ -1531,18 +1531,19 @@ def eric_main():
                         print(p[0])
                         direct = direct + 1
             else:
-                print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
-                print(ordered_paths_11Ds[State1][path][:3])
-                print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
-                print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+                #print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
+                #print(ordered_paths_11Ds[State1][path][:3])
+                #print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+                #print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
 #                p = [tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]]
-                print(' NO None-Type found  for path --> {}'.format(path_UD_2))
+                #print(' NO None-Type found  for path --> {}'.format(path_UD_2))
                 count += 1
-    
+
                 if len(p[0]) == 2 :
-                    print(p[0])
-                    direct = direct + 1    
-                else :
+                    print('  direct:', p[0])
+                    direct = direct + 1
+                else:
+                    print('  indirect:', p[0])
                     indirect += 1
                 if None in p[0] :
                     nonecounter += 1
@@ -1551,11 +1552,12 @@ def eric_main():
                     nonecounterall +=  1
                 if None in p[2] :
                     nonecounterall +=  1
-       
-        print(direct/(count))
-        print(nonecounter/(count))
-        print(nonecounterall/(count*3))
-                
+
+        print('COUNT:', count)
+        print('% DIRECT PATHS:', direct/(count))
+        print('% PATHS W/ NONE', nonecounter/(count))
+        print('% PATHS W/ NONE, ALL', nonecounterall/(count*3))
+
         #How often is the optimal path direct, with one intermediate, or with 2 intermediates (for each of Stein, 1-UD, and 2-UD cases)
         # Stein : 45.0 % (All paths)
         # 1-UD : 58.3 %(Non-None states) --> 35%(All states)
@@ -1577,8 +1579,8 @@ def eric_main():
         #most optimal path between Stein steady states when including 1-UD steady states (* this will be kind of tricky, since one of the Stein steady states is 2-UD and so this might not work very well)
 
 
-                
-    Normed = False
+
+    Normed = True
     if Normed:
         print('\n### NORMED SEPARATRIX ###')
         read_data = True
@@ -1586,44 +1588,44 @@ def eric_main():
         path_lengths_11Ds = {}
         ordered_paths_2Ds = {}
         path_lengths_2Ds = {}
-    
+
         filename = 'data/norm_path_lengths_S012'
-    
+
         if not read_data:
             for UD in ['S', 0, 1, 2]:
                 UD_fp_labels = list(translation_dict[UD][0].keys())
-    
+
                 ordered_paths_11D, path_lengths_11D = navigate_between_fps(
                     norms_11D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
                 #ordered_paths_2D, path_lengths_2D = navigate_between_fps(
                 #    norms_2D[UD], verbose=False, labels=UD_fp_labels, hrz=3)
-    
+
                 ordered_paths_11Ds[UD] = ordered_paths_11D
                 path_lengths_11Ds[UD] = path_lengths_11D
                 #ordered_paths_2Ds[UD] = ordered_paths_2D
                 #path_lengths_2Ds[UD] = path_lengths_2D
             with open(filename, 'wb') as f:
                 pickle.dump((ordered_paths_11Ds, path_lengths_11Ds), f)
-                
-                                 
-        
+
+
+
         else:
             with open(filename, 'rb') as f:
                 ordered_paths_11Ds, path_lengths_11Ds = pickle.load(f)
-        
-        
-        
+
+
+
         State1 = 'S'
-        State2 = 1
+        State2 = 2
         nonecounter = 0
         nonecounterall = 0
         direct = 0
         indirect = 0
-        count  = 0        
-        
-        
+        count  = 0
+
+
         for path in ordered_paths_11Ds[State1]:
-            print()
+            #print()
 #            p = ordered_paths_11Ds[State1][path][:3]
             path_UD_2 = tuple(translation_dict[State1][State2][x] for x in path)
             if path_UD_2[0] == None or path_UD_2[1] == None :
@@ -1634,20 +1636,21 @@ def eric_main():
                     if len(p[0]) == 2 :
                         print(p[0])
                         direct = direct + 1
-                    
+
             else:
-                print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
-                print(ordered_paths_11Ds[State1][path][:3])
-                print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
-                print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+                #print([path_lengths_11Ds[State1][pp] for pp in ordered_paths_11Ds[State1][path][:3]])
+                #print(ordered_paths_11Ds[State1][path][:3])
+                #print([tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
+                #print([path_lengths_11Ds[State2][pp] for pp in ordered_paths_11Ds[State2][path_UD_2][:3]])
                 p = [tuple(translation_dict[State2][State1][x] for x in pp) for pp in ordered_paths_11Ds[State2][path_UD_2][:3]]
-                print(' NO None-Type found  for path --> {}'.format(path_UD_2))
+                #print(' NO None-Type found  for path --> {}'.format(path_UD_2))
                 count += 1
-    
+
                 if len(p[0]) == 2 :
-                    print(p[0])
-                    direct = direct + 1    
-                else :
+                    print('  direct:', p[0])
+                    direct = direct + 1
+                else:
+                    print('  indirect:', p[0])
                     indirect += 1
                 if None in p[0] :
                     nonecounter += 1
@@ -1656,11 +1659,12 @@ def eric_main():
                     nonecounterall +=  1
                 if None in p[2] :
                     nonecounterall +=  1
-        print(count)
-        print(direct/(count))
-        print(nonecounter/(count))
-        print(nonecounterall/(count*3))
-    
+
+        print('COUNT:', count)
+        print('% DIRECT PATHS:', direct/(count))
+        print('% PATHS W/ NONE', nonecounter/(count))
+        print('% PATHS W/ NONE, ALL', nonecounterall/(count*3))
+
         #How often is the optimal path direct, with one intermediate, or with 2 intermediates (for each of Stein, 1-UD, and 2-UD cases)
         # Stein : 50.0 % (All paths)
         # 1-UD : 41.7 %(Non-None states) --> 25%(All states)
