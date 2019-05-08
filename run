@@ -1,2 +1,2 @@
 #!/bin/bash
-./BiomeSimu.py
+./make_schematic_fig.py
