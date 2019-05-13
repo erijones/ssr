@@ -1433,7 +1433,7 @@ def get_translation_dict():
 
     all_fps = {}
 
-    for UD in [0, 1, 2]:
+    for UD in [0, 1, 2, 3]:
         ud_fps = get_nonnegative_fps(mu, M, UD, False)
         all_fps[UD] = ud_fps
 
@@ -1459,19 +1459,20 @@ def eric_main():
     # translation_dict[from: 'S', 0, 1, or 2][to: 'S', 0, 1, or 2][from name: 4]
     #print(translation_dict['S'][1][3])
     #print(translation_dict['S'][0])
-
+    rd = True
+    UDl = ['S', 0, 1, 2, 3]
     seps_2D = {}
     seps_11D = {}
     norms_2D = {}
     norms_11D = {}
 
-    for UD in ['S', 0, 1, 2]:
+    for UD in UDl:
         if UD == 'S':
             sep_matrix_2D, sep_matrix_11D, norm_matrix_2D, norm_matrix_11D, labels = (
-               Generate_And_Save_FixedPoints(read_data=True, UD=0, stein=True, generateFigure=False))
+               Generate_And_Save_FixedPoints(read_data=rd, UD=0, stein=True, generateFigure=False))
         else:
             sep_matrix_2D, sep_matrix_11D, norm_matrix_2D, norm_matrix_11D, labels = (
-               Generate_And_Save_FixedPoints(read_data=True , UD=UD, stein=False, generateFigure=False))
+               Generate_And_Save_FixedPoints(read_data=rd , UD=UD, stein=False, generateFigure=False))
 
         seps_2D[UD] = sep_matrix_2D
         seps_11D[UD] = sep_matrix_11D
@@ -1486,10 +1487,10 @@ def eric_main():
         ordered_paths_2Ds = {}
         path_lengths_2Ds = {}
 
-        read_data = True
+        read_data = rd
         filename = 'data/prop_path_lengths_S012'
         if not read_data:
-            for UD in ['S', 0, 1, 2]:
+            for UD in UDl:
                 UD_fp_labels = list(translation_dict[UD][0].keys())
 
                 ordered_paths_11D, path_lengths_11D = navigate_between_fps(
@@ -1508,9 +1509,9 @@ def eric_main():
             with open(filename, 'rb') as f:
                 (ordered_paths_11Ds, path_lengths_11Ds) = pickle.load(f)
 
-        read_data = True
+        read_data = rd
         State1 = 'S'
-        State2 = 2
+        State2 = 3
         nonecounter = 0
         nonecounterall = 0
         direct = 0
